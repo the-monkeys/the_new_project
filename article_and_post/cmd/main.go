@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	logrus.Info("starting the api gateway...")
+	logrus.Info("starting the article server...")
 }
