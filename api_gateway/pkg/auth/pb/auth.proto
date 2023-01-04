@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./pkg/auth/pb";
+option go_package = "./api_gateway/pkg/auth/pb";
 
 message RegisterRequest {
   string firstName = 1;
