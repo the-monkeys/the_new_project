@@ -26,6 +26,8 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 		}, nil
 	}
 
+	user.FirstName = req.FirstName
+	user.LastName = req.LastName
 	user.Email = req.Email
 	user.Password = utils.HashPassword(req.Password)
 

@@ -39,15 +39,16 @@ func (asc *serviceClient) Register(ctx *gin.Context) {
 	// Register(ctx, asc.Client)
 
 	body := RegisterRequestBody{}
-
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	res, err := asc.Client.Register(context.Background(), &pb.RegisterRequest{
-		Email:    body.Email,
-		Password: body.Password,
+		FirstName: body.FirstName,
+		LastName:  body.LastName,
+		Email:     body.Email,
+		Password:  body.Password,
 	})
 
 	if err != nil {
