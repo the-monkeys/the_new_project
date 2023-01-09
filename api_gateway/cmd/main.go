@@ -16,6 +16,8 @@ func main() {
 	router := gin.Default()
 
 	auth.RegisterRouter(router, &cfg)
-
-	router.Run(cfg.Port)
+	logrus.Info("starting the gateway server at port: ", cfg.Port)
+	if err = router.Run(cfg.Port); err != nil {
+		logrus.Fatalf("failed to start the gateway: %v", err)
+	}
 }

@@ -11,16 +11,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-type LoginRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type RegisterRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 type serviceClient struct {
 	Client pb.AuthServiceClient
 }
@@ -46,14 +36,8 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *serviceClient {
 }
 
 func (asc *serviceClient) Register(ctx *gin.Context) {
-	Register(ctx, asc.Client)
-}
+	// Register(ctx, asc.Client)
 
-func (asc *serviceClient) Login(ctx *gin.Context) {
-	Login(ctx, asc.Client)
-}
-
-func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 	body := RegisterRequestBody{}
 
 	if err := ctx.BindJSON(&body); err != nil {
@@ -61,7 +45,7 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 		return
 	}
 
-	res, err := c.Register(context.Background(), &pb.RegisterRequest{
+	res, err := asc.Client.Register(context.Background(), &pb.RegisterRequest{
 		Email:    body.Email,
 		Password: body.Password,
 	})
@@ -72,9 +56,11 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 	}
 
 	ctx.JSON(int(res.Status), &res)
+
 }
 
-func Login(ctx *gin.Context, c pb.AuthServiceClient) {
+func (asc *serviceClient) Login(ctx *gin.Context) {
+	// Login(ctx, asc.Client)
 	b := LoginRequestBody{}
 
 	if err := ctx.BindJSON(&b); err != nil {
@@ -82,7 +68,7 @@ func Login(ctx *gin.Context, c pb.AuthServiceClient) {
 		return
 	}
 
-	res, err := c.Login(context.Background(), &pb.LoginRequest{
+	res, err := asc.Client.Login(context.Background(), &pb.LoginRequest{
 		Email:    b.Email,
 		Password: b.Password,
 	})
@@ -94,3 +80,45 @@ func Login(ctx *gin.Context, c pb.AuthServiceClient) {
 
 	ctx.JSON(http.StatusCreated, &res)
 }
+
+// func Register(ctx *gin.Context, c pb.AuthServiceClient) {
+// 	body := RegisterRequestBody{}
+
+// 	if err := ctx.BindJSON(&body); err != nil {
+// 		ctx.AbortWithError(http.StatusBadRequest, err)
+// 		return
+// 	}
+
+// 	res, err := c.Register(context.Background(), &pb.RegisterRequest{
+// 		Email:    body.Email,
+// 		Password: body.Password,
+// 	})
+
+// 	if err != nil {
+// 		ctx.AbortWithError(http.StatusBadGateway, err)
+// 		return
+// 	}
+
+// 	ctx.JSON(int(res.Status), &res)
+// }
+
+// func Login(ctx *gin.Context, c pb.AuthServiceClient) {
+// 	b := LoginRequestBody{}
+
+// 	if err := ctx.BindJSON(&b); err != nil {
+// 		ctx.AbortWithError(http.StatusBadRequest, err)
+// 		return
+// 	}
+
+// 	res, err := c.Login(context.Background(), &pb.LoginRequest{
+// 		Email:    b.Email,
+// 		Password: b.Password,
+// 	})
+
+// 	if err != nil {
+// 		ctx.AbortWithError(http.StatusBadGateway, err)
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusCreated, &res)
+// }
