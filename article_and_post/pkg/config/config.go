@@ -3,10 +3,10 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	Port      string `mapstructure:"ARTICLE_SERVICE_PORT"`
-	OSAddress string `mapstructure:"OPENSEARCH_ADDRESS"`
-	Username  string `mapstructure:"USERNAME"`
-	Password  string `mapstructure:"PASSWORD"`
+	ArticleServerPort string `mapstructure:"ARTICLE_SERVICE_PORT"`
+	OSAddress         string `mapstructure:"OPENSEARCH_ADDRESS"`
+	Username          string `mapstructure:"USERNAME"`
+	Password          string `mapstructure:"PASSWORD"`
 }
 
 func LoadConfig() (config Config, err error) {
@@ -26,5 +26,3 @@ func LoadConfig() (config Config, err error) {
 
 	return
 }
-
-// OSClient *opensearch.Client

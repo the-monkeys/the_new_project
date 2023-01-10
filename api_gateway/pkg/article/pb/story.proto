@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./api_gateway/pkg/article/pb";
+import "google/protobuf/timestamp.proto";
+
+
+  // CreateArticleRequest
+  message CreateArticleRequest {
+    string title = 1;
+    string content  = 2;
+    string Author = 3;
+    bool isDraft = 4;
+    repeated string Tags = 5;
+    google.protobuf.Timestamp createTime = 6;
+    google.protobuf.Timestamp updateTime = 7;
+    bool quickread = 8;
+  }
+  
+  message CreateArticleResponse {
+    int64 status = 1;
+    string error = 2;
+    int64 id = 3;
+  }
+  
+
+  
+  service ArticleService {
+    rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
+  }

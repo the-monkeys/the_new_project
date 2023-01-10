@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-type serviceClient struct {
+type ServiceClient struct {
 	Client pb.AuthServiceClient
 }
 
@@ -25,8 +25,8 @@ func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 	return pb.NewAuthServiceClient(cc)
 }
 
-func RegisterRouter(router *gin.Engine, cfg *config.Config) *serviceClient {
-	asc := &serviceClient{
+func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
+	asc := &ServiceClient{
 		Client: InitServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/auth")
@@ -36,7 +36,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *serviceClient {
 	return asc
 }
 
-func (asc *serviceClient) Register(ctx *gin.Context) {
+func (asc *ServiceClient) Register(ctx *gin.Context) {
 	// Register(ctx, asc.Client)
 
 	body := RegisterRequestBody{}
@@ -61,7 +61,7 @@ func (asc *serviceClient) Register(ctx *gin.Context) {
 
 }
 
-func (asc *serviceClient) Login(ctx *gin.Context) {
+func (asc *ServiceClient) Login(ctx *gin.Context) {
 	// Login(ctx, asc.Client)
 	b := LoginRequestBody{}
 
