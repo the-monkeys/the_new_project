@@ -24,4 +24,15 @@ curl --location --request POST 'http://localhost:5001/api/v1/auth/login' \
 
 ## Create an article
 ```
+curl --location --request POST 'http://localhost:5001/api/v1/article/' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ5MDAzMzksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MywiRW1haWwiOiJraGFzYmFAbWFpbC5jb20ifQ.p8oKo8Ny1cSh67p_C7_oagTNdnIUpQxosz1sUSG4--k' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+ "title": "Saving to Pocket via Email",
+ "content": "Pocket can only save links from emails. ",
+ "author": "Dave Augustus",
+ "is_draft": true,
+ "tags": ["firstpost", "test", "dev"]
+}'
+
 ```

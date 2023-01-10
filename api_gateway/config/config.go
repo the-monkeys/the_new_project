@@ -6,6 +6,7 @@ type Config struct {
 	Port          string `mapstructure:"PORT"`
 	AuthSvcUrl    string `mapstructure:"AUTH_SVC_URL"`
 	ArticleSvcUrl string `mapstructure:"STORY_SVC_URL"`
+	UserSvcUrl    string `mapstructure:"USER_SVC_URL"`
 }
 
 func LoadGatewayConfig() (c Config, err error) {

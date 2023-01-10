@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./api_gateway/pkg/user_service/pb";
+
+import "google/protobuf/timestamp.proto";
+
+message GetUserProfileReq {
+    int64 id = 1;
+}
+
+message GetUserProfileRes {
+    int64 id = 1;
+    string firstName = 2;
+    string lastName = 3;
+    string email = 4;
+    bytes profilePic = 5;
+    google.protobuf.Timestamp createTime = 6;
+    google.protobuf.Timestamp updateTime = 7;
+    bool isActive = 8;
+    UserRole role = 9;
+    google.protobuf.Timestamp lastLogin = 10;
+}
+
+
+enum UserRole {
+    USER_ADMIN = 0;
+    USER_NORMAL = 1;
+    USER_SUPPORT = 2;
+    USER_SECURITY = 3;
+}
+
+service UserService {
+    rpc GetUserProfile(GetUserProfileReq) returns (GetUserProfileRes) {}
+}

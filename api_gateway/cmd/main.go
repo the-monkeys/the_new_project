@@ -4,6 +4,7 @@ import (
 	"github.com/89minutes/the_new_project/api_gateway/config"
 	"github.com/89minutes/the_new_project/api_gateway/pkg/article"
 	"github.com/89minutes/the_new_project/api_gateway/pkg/auth"
+	"github.com/89minutes/the_new_project/api_gateway/pkg/user_service"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -18,6 +19,7 @@ func main() {
 
 	authClient := auth.RegisterRouter(router, &cfg)
 	article.RegisterArticleRoutes(router, &cfg, authClient)
+	user_service.RegisterUserRouter(router, &cfg, authClient)
 
 	logrus.Info("starting the gateway server at port: ", cfg.Port)
 	if err = router.Run(cfg.Port); err != nil {
