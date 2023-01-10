@@ -7,11 +7,11 @@ option go_package = "./user_profile_svc/user_service/pb";
 import "google/protobuf/timestamp.proto";
 
 message GetUserProfileReq {
-    string id = 1;
+    int64 id = 1;
 }
 
 message GetUserProfileRes {
-    string id = 1;
+    int64 id = 1;
     string firstName = 2;
     string lastName = 3;
     string email = 4;
