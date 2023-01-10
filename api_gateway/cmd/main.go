@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
+	cfg, err := config.LoadGatewayConfig()
 	if err != nil {
 		logrus.Fatalf("failed to load the config: %v", err)
 	}

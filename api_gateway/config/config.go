@@ -8,7 +8,7 @@ type Config struct {
 	ArticleSvcUrl string `mapstructure:"STORY_SVC_URL"`
 }
 
-func LoadConfig() (c Config, err error) {
+func LoadGatewayConfig() (c Config, err error) {
 	viper.AddConfigPath("/etc/the_monkey")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
