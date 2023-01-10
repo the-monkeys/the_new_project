@@ -8,6 +8,7 @@ import (
 	"github.com/89minutes/the_new_project/auth_service/pkg/models"
 	"github.com/89minutes/the_new_project/auth_service/pkg/pb"
 	"github.com/89minutes/the_new_project/auth_service/pkg/utils"
+	"github.com/sirupsen/logrus"
 )
 
 type Server struct {
@@ -42,23 +43,26 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 	var user models.User
 
 	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
+		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "User not found",
+			Error:  "user doesn't exists",
 		}, nil
 	}
 
 	match := utils.CheckPasswordHash(req.Password, user.Password)
 
 	if !match {
+		logrus.Infof("incorrect password given for the user containing email: %s", req.Email)
 		return &pb.LoginResponse{
-			Status: http.StatusNotFound,
-			Error:  "User not found",
+			Status: http.StatusBadRequest,
+			Error:  "incorrect password",
 		}, nil
 	}
 
 	token, _ := s.Jwt.GenerateToken(user)
 
+	logrus.Infof("user containing email: %s, can successfully login", req.Email)
 	return &pb.LoginResponse{
 		Status: http.StatusOK,
 		Token:  token,

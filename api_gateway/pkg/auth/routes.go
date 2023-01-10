@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/89minutes/the_new_project/api_gateway/config"
@@ -75,51 +76,22 @@ func (asc *serviceClient) Login(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		logrus.Errorf("internal server error, user containing email: %s cannot login", b.Email)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, &res)
+	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+		logrus.Infof("user containing email: %s, doesn't exists", b.Email)
+		ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+		logrus.Infof("incorrect password given for the user containing email: %s", b.Email)
+		ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
 }
-
-// func Register(ctx *gin.Context, c pb.AuthServiceClient) {
-// 	body := RegisterRequestBody{}
-
-// 	if err := ctx.BindJSON(&body); err != nil {
-// 		ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-
-// 	res, err := c.Register(context.Background(), &pb.RegisterRequest{
-// 		Email:    body.Email,
-// 		Password: body.Password,
-// 	})
-
-// 	if err != nil {
-// 		ctx.AbortWithError(http.StatusBadGateway, err)
-// 		return
-// 	}
-
-// 	ctx.JSON(int(res.Status), &res)
-// }
-
-// func Login(ctx *gin.Context, c pb.AuthServiceClient) {
-// 	b := LoginRequestBody{}
-
-// 	if err := ctx.BindJSON(&b); err != nil {
-// 		ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-
-// 	res, err := c.Login(context.Background(), &pb.LoginRequest{
-// 		Email:    b.Email,
-// 		Password: b.Password,
-// 	})
-
-// 	if err != nil {
-// 		ctx.AbortWithError(http.StatusBadGateway, err)
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusCreated, &res)
-// }
