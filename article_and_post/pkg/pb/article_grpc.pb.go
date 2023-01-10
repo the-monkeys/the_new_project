@@ -35,7 +35,7 @@ func NewArticleServiceClient(cc grpc.ClientConnInterface) ArticleServiceClient {
 
 func (c *articleServiceClient) CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...grpc.CallOption) (*CreateArticleResponse, error) {
 	out := new(CreateArticleResponse)
-	err := c.cc.Invoke(ctx, "/product.ArticleService/CreateArticle", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/article.ArticleService/CreateArticle", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _ArticleService_CreateArticle_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/product.ArticleService/CreateArticle",
+		FullMethod: "/article.ArticleService/CreateArticle",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ArticleServiceServer).CreateArticle(ctx, req.(*CreateArticleRequest))
@@ -92,7 +92,7 @@ func _ArticleService_CreateArticle_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ArticleService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "product.ArticleService",
+	ServiceName: "article.ArticleService",
 	HandlerType: (*ArticleServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

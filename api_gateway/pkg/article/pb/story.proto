@@ -8,14 +8,15 @@ import "google/protobuf/timestamp.proto";
 
   // CreateArticleRequest
   message CreateArticleRequest {
-    string title = 1;
-    string content  = 2;
-    string Author = 3;
-    bool isDraft = 4;
-    repeated string Tags = 5;
-    google.protobuf.Timestamp createTime = 6;
-    google.protobuf.Timestamp updateTime = 7;
-    bool quickread = 8;
+    string Id = 1;
+    string title = 2;
+    string content  = 3;
+    string Author = 4;
+    bool isDraft = 5;
+    repeated string Tags = 6;
+    google.protobuf.Timestamp createTime = 7;
+    google.protobuf.Timestamp updateTime = 8;
+    bool quickRead = 9;
   }
   
   message CreateArticleResponse {

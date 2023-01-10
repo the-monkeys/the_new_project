@@ -18,20 +18,15 @@ func main() {
 		log.Fatalln("Failed at config", err)
 	}
 
-	// h := db.Init(c.DBUrl)
-
 	lis, err := net.Listen("tcp", cfg.ArticleServerPort)
 
 	if err != nil {
 		log.Fatalln("Failed to listing:", err)
 	}
 
-	fmt.Println("Product Svc on", cfg.ArticleServerPort)
+	fmt.Println("Article Service is on port: ", cfg.ArticleServerPort)
 
-	// s := services.Server{
-	// 	H: h,
-	// }
-	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.Username, cfg.Password)
+	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword)
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterArticleServiceServer(grpcServer, articleServer)

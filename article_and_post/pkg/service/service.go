@@ -2,12 +2,17 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/89minutes/the_new_project/article_and_post/pkg/database"
 	"github.com/89minutes/the_new_project/article_and_post/pkg/models"
 	"github.com/89minutes/the_new_project/article_and_post/pkg/pb"
+	"github.com/89minutes/the_new_project/article_and_post/pkg/utils"
+	"github.com/google/uuid"
 	"github.com/opensearch-project/opensearch-go"
+	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,22 +36,45 @@ func NewArticleServer(url, username, password string) (*ArticleServer, error) {
 func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArticleRequest) (*pb.CreateArticleResponse, error) {
 	var article models.Article
 
-	article.Title = req.Title
-	article.Content = req.Content
-	article.Author = req.Author
+	if req.GetId() == "" {
+		req.Id = uuid.New().String()
+	}
 
 	// Store into the opensearch db
-	logrus.Info("Getting the article: %+v", article)
-	// srv.osClient.Create("article")
-	// if result := s.H.DB.Create(&product); result.Error != nil {
-	// 	return &pb.CreateProductResponse{
-	// 		Status: http.StatusConflict,
-	// 		Error:  result.Error.Error(),
-	// 	}, nil
-	// }
+	document := strings.NewReader(ArticleToString(req))
+
+	osReq := opensearchapi.IndexRequest{
+		Index:      utils.OpensearchArticleIndex,
+		DocumentID: req.Id,
+		Body:       document,
+	}
+
+	insertResponse, err := osReq.Do(context.Background(), srv.osClient)
+	if err != nil {
+		logrus.Errorf("cannot create a new document for user: %s, error: %v", req.GetAuthor(), err)
+		return nil, err
+	}
+
+	logrus.Infof("successfully created an article for user: %s, insert response: %+v",
+		req.Author, insertResponse)
 
 	return &pb.CreateArticleResponse{
 		Status: http.StatusCreated,
 		Id:     article.Id,
 	}, nil
+}
+
+func ArticleToString(ip *pb.CreateArticleRequest) string {
+	return fmt.Sprintf(`{
+		"id":         	"%s",
+		"title":      	"%s",
+		"content":     	"%s",
+		"author":   	"%s",
+		"is_draft":    	"%v",
+		"tags": 		"%v",
+		"create_time": 	"%v",
+		"update_time": 	"%v",
+		"quick_read": 	"%v"
+	}`, ip.Id, ip.Title, ip.Content, ip.Author, ip.IsDraft,
+		ip.Tags, ip.CreateTime, ip.UpdateTime, ip.QuickRead)
 }

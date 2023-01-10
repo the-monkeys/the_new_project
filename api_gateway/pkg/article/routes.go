@@ -22,11 +22,11 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 
 	routes := r.Group("/api/v1/article")
 	routes.Use(mware.AuthRequired)
-	routes.POST("/", svc.CreateProduct)
+	routes.POST("/", svc.CreateArticle)
 
 }
 
-func (svc *ArticleServiceClient) CreateProduct(ctx *gin.Context) {
+func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	body := CreateArticleRequestBody{}
 
 	if err := ctx.BindJSON(&body); err != nil {
@@ -46,7 +46,7 @@ func (svc *ArticleServiceClient) CreateProduct(ctx *gin.Context) {
 		Tags:       body.Tags,
 		CreateTime: timestamppb.New(time.Now()),
 		UpdateTime: timestamppb.New(time.Now()),
-		Quickread:  isShort,
+		QuickRead:  isShort,
 	})
 
 	if err != nil {

@@ -5,8 +5,8 @@ import "github.com/spf13/viper"
 type Config struct {
 	ArticleServerPort string `mapstructure:"ARTICLE_SERVICE_PORT"`
 	OSAddress         string `mapstructure:"OPENSEARCH_ADDRESS"`
-	Username          string `mapstructure:"USERNAME"`
-	Password          string `mapstructure:"PASSWORD"`
+	OSUsername        string `mapstructure:"OSUSERNAME"`
+	OSPassword        string `mapstructure:"OSPASSWORD"`
 }
 
 func LoadConfig() (config Config, err error) {
