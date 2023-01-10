@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "./article_and_post/pkg/pb";
+
+import "google/protobuf/timestamp.proto";
+
+
+// CreateArticleRequest
+message CreateArticleRequest {
+  string title = 1;
+  string content  = 2;
+  string Author = 3;
+  bool isDraft = 4;
+  repeated Tag Tag = 5;
+  google.protobuf.Timestamp createTime = 6;
+  google.protobuf.Timestamp updateTime = 7;
+}
+
+message CreateArticleResponse {
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
+}
+
+// FindOne
+
+// message FindOneData {
+//   int64 id = 1;
+//   string name = 2;
+//   int64 stock = 3;
+//   int64 price = 4;
+// }
+
+// message FindOneRequest { int64 id = 1; }
+
+// message FindOneResponse {
+//   int64 status = 1;
+//   string error = 2;
+//   FindOneData data = 3;
+// }
+
+// // // DecreaseStock
+
+// message DecreaseStockRequest {
+//   int64 id = 1;
+//   int64 orderId = 2;
+// }
+
+// message DecreaseStockResponse {
+//   int64 status = 1;
+//   string error = 2;
+// }
+
+service ArticleService {
+  rpc CreateArticle(CreateProductRequest) returns (CreateProductResponse) {}
+  // rpc FindArticle(FindOneRequest) returns (FindOneResponse) {}
+  // rpc DecreaseStock(DecreaseStockRequest) returns (DecreaseStockResponse) {}
+}
