@@ -12,25 +12,25 @@ import (
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
+	cfg, err := config.LoadArtNPostConfig()
 
 	if err != nil {
-		log.Fatalln("Failed at config", err)
+		log.Fatalln("failed to load the config file, error: ", err)
 	}
 
 	lis, err := net.Listen("tcp", cfg.ArticleServerPort)
 
 	if err != nil {
-		log.Fatalln("Failed to listing:", err)
+		log.Fatalf("article and service server failed to listen at port %v, error: %v",
+			cfg.ArticleServerPort, err)
 	}
-
-	fmt.Println("Article Service is on port: ", cfg.ArticleServerPort)
 
 	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword)
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterArticleServiceServer(grpcServer, articleServer)
 
+	fmt.Println("art and post service is running on address: ", cfg.ArticleServerPort)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
 	}
