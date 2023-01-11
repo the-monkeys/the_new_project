@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/89minutes/the_new_project/article_and_post/pkg/database"
@@ -91,4 +93,92 @@ func ArticleToString(ip *pb.CreateArticleRequest) string {
 	}`, ip.Id, ip.Title, ip.Content, ip.Author, ip.IsDraft,
 		ip.Tags, ip.CreateTime, ip.UpdateTime, ip.QuickRead, ip.ContentOwnerShip,
 		ip.CanEdit, ip.ViewBy, ip.Comment)
+}
+
+func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
+	// TODO: Get All the articles and stream in the for loop
+
+	// Search for the document.
+	content := strings.NewReader(`{
+		"query": {
+			"match": {
+				"is_draft": "false"
+			}
+		},
+		"_source": {
+			"includes": [
+				"id",
+				"title",
+				"author",
+				"create_time",
+				"quick_read",
+				"viewed_by"
+			],
+			"excludes": [
+				"content"
+			]
+		}
+	}`)
+
+	search := opensearchapi.SearchRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(context.Background(), srv.osClient)
+	if err != nil {
+		fmt.Println("failed to search document ", err)
+		os.Exit(1)
+	}
+	fmt.Println("Searching for a document")
+	// fmt.Println(searchResponse.)
+	var result map[string]interface{}
+	// resp := []pb.GetArticlesResponse{}
+
+	decoder := json.NewDecoder(searchResponse.Body)
+	if err := decoder.Decode(&result); err != nil {
+		logrus.Error("Error while decoding, error", err)
+	}
+
+	documents := result["hits"].(map[string]interface{})["hits"].([]interface{})
+	fmt.Println("Length of doc: ", len(documents))
+	for _, doc := range documents {
+		resp := ParseToStruct(doc)
+		if err := stream.Send(&resp); err != nil {
+			logrus.Errorf("error while sending stream, error %+v", err)
+		}
+	}
+
+	return nil
+}
+
+func ParseToStruct(result interface{}) pb.GetArticlesResponse {
+	// logrus.Infof("Struct**********: %+v", result.(map[string]interface{}))
+	instance := models.GetArticleResp{}
+	layer1 := result.(map[string]interface{})
+	logrus.Infof("Layer 1: %+v", layer1["_source"])
+	byteSlice, err := json.MarshalIndent(layer1["_source"], "", "    ")
+	if err != nil {
+		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return pb.GetArticlesResponse{}
+	}
+
+	if err := json.Unmarshal(byteSlice, &instance); err != nil {
+		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return pb.GetArticlesResponse{}
+	}
+	logrus.Infof("byteslice: %s", string(byteSlice))
+
+	qRead := false
+	if instance.QuickRead == "true" {
+		qRead = true
+	}
+	return pb.GetArticlesResponse{
+		Id:     instance.ID,
+		Title:  instance.Title,
+		Author: instance.Author,
+		// CreateTime: instance.CreateTime,
+		QuickRead: qRead,
+		// ViewBy:    instance.ViewedBy,
+	}
 }

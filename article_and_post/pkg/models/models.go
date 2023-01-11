@@ -13,3 +13,12 @@ type Article struct {
 	UpdateTime *timestamppb.Timestamp `json:"update_time"`
 	QuickRead  bool                   `json:"quick_read"`
 }
+
+type GetArticleResp struct {
+	Author     string `json:"author"`
+	CreateTime string `json:"create_time"`
+	ID         string `json:"id"`
+	QuickRead  string `json:"quick_read"`
+	Title      string `json:"title"`
+	ViewedBy   string `json:"viewed_by"`
+}

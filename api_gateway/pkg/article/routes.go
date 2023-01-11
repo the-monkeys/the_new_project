@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"time"
 
@@ -21,6 +22,7 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 	}
 
 	routes := r.Group("/api/v1/article")
+	routes.GET("/", svc.GetArticles)
 	routes.Use(mware.AuthRequired)
 	routes.POST("/", svc.CreateArticle)
 
@@ -56,4 +58,31 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, &res)
+}
+
+func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
+	logrus.Infof("the page is visited from ip: %s", "192.168.0.3")
+
+	stream, err := svc.Client.GetArticles(context.Background(), &pb.GetArticlesRequest{})
+	if err != nil {
+		logrus.Infof("cannot connect to article stream rpc server, error: %v", err)
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	response := []*pb.GetArticlesResponse{}
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logrus.Errorf("cannot get the stream data, error: %+v", err)
+		}
+
+		logrus.Info("Got response: %+v", resp)
+		response = append(response, resp)
+	}
+
+	ctx.JSON(http.StatusCreated, response)
 }
