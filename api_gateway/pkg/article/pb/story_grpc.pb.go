@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ArticleServiceClient interface {
 	CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...grpc.CallOption) (*CreateArticleResponse, error)
+	GetArticles(ctx context.Context, in *GetArticlesRequest, opts ...grpc.CallOption) (ArticleService_GetArticlesClient, error)
 }
 
 type articleServiceClient struct {
@@ -42,11 +43,44 @@ func (c *articleServiceClient) CreateArticle(ctx context.Context, in *CreateArti
 	return out, nil
 }
 
+func (c *articleServiceClient) GetArticles(ctx context.Context, in *GetArticlesRequest, opts ...grpc.CallOption) (ArticleService_GetArticlesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ArticleService_ServiceDesc.Streams[0], "/auth.ArticleService/GetArticles", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &articleServiceGetArticlesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ArticleService_GetArticlesClient interface {
+	Recv() (*GetArticlesResponse, error)
+	grpc.ClientStream
+}
+
+type articleServiceGetArticlesClient struct {
+	grpc.ClientStream
+}
+
+func (x *articleServiceGetArticlesClient) Recv() (*GetArticlesResponse, error) {
+	m := new(GetArticlesResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ArticleServiceServer is the server API for ArticleService service.
 // All implementations must embed UnimplementedArticleServiceServer
 // for forward compatibility
 type ArticleServiceServer interface {
 	CreateArticle(context.Context, *CreateArticleRequest) (*CreateArticleResponse, error)
+	GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error
 	mustEmbedUnimplementedArticleServiceServer()
 }
 
@@ -56,6 +90,9 @@ type UnimplementedArticleServiceServer struct {
 
 func (UnimplementedArticleServiceServer) CreateArticle(context.Context, *CreateArticleRequest) (*CreateArticleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateArticle not implemented")
+}
+func (UnimplementedArticleServiceServer) GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetArticles not implemented")
 }
 func (UnimplementedArticleServiceServer) mustEmbedUnimplementedArticleServiceServer() {}
 
@@ -88,6 +125,27 @@ func _ArticleService_CreateArticle_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArticleService_GetArticles_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetArticlesRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ArticleServiceServer).GetArticles(m, &articleServiceGetArticlesServer{stream})
+}
+
+type ArticleService_GetArticlesServer interface {
+	Send(*GetArticlesResponse) error
+	grpc.ServerStream
+}
+
+type articleServiceGetArticlesServer struct {
+	grpc.ServerStream
+}
+
+func (x *articleServiceGetArticlesServer) Send(m *GetArticlesResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ArticleService_ServiceDesc is the grpc.ServiceDesc for ArticleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +158,12 @@ var ArticleService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ArticleService_CreateArticle_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetArticles",
+			Handler:       _ArticleService_GetArticles_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "api_gateway/pkg/article/pb/story.proto",
 }
