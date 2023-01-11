@@ -7,3 +7,8 @@ type CreateArticleRequestBody struct {
 	IsDraft bool     `json:"is_draft"`
 	Tags    []string `json:"tags"`
 }
+
+type EditArticleRequestBody struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}

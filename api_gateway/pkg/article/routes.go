@@ -24,8 +24,12 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 	routes := r.Group("/api/v1/article")
 	routes.GET("/", svc.GetArticles)
 	routes.GET("/:id", svc.GetArticleById)
+
 	routes.Use(mware.AuthRequired)
+
 	routes.POST("/", svc.CreateArticle)
+	routes.PUT("/post/:id/", svc.EditArticles)
+	routes.PATCH("/post/:id/", svc.EditArticles)
 
 }
 
@@ -92,6 +96,33 @@ func (svc *ArticleServiceClient) GetArticleById(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	res, err := svc.Client.GetArticleById(context.Background(), &pb.GetArticleByIdReq{Id: id})
+	if err != nil {
+		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	reqObj := EditArticleRequestBody{}
+
+	if err := ctx.BindJSON(&reqObj); err != nil {
+		logrus.Errorf("invalid body, error", err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	res, err := svc.Client.EditArticle(context.Background(), &pb.EditArticleReq{
+		Id:      id,
+		Title:   reqObj.Title,
+		Content: reqObj.Content,
+		Method:  ctx.Request.Method,
+	})
+
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
 		ctx.AbortWithError(http.StatusInternalServerError, err)

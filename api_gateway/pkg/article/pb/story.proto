@@ -49,9 +49,23 @@ message GetArticleByIdResp {
   bool quickRead = 7;
   int64 noOfViews = 8;
 }
-  
-  service ArticleService {
-    rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
-    rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
-    rpc GetArticleById (GetArticleByIdReq) returns ( GetArticleByIdResp){};
-  }
+
+message EditArticleReq {
+  string Id = 1;
+  string title = 2;
+  string content = 3;
+  string method = 4;
+}
+
+message EditArticleRes {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
+service ArticleService {
+  rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
+  rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
+  rpc GetArticleById (GetArticleByIdReq) returns ( GetArticleByIdResp){};
+  rpc EditArticle (EditArticleReq) returns ( EditArticleRes){};
+}

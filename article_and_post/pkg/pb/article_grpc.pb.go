@@ -25,6 +25,7 @@ type ArticleServiceClient interface {
 	CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...grpc.CallOption) (*CreateArticleResponse, error)
 	GetArticles(ctx context.Context, in *GetArticlesRequest, opts ...grpc.CallOption) (ArticleService_GetArticlesClient, error)
 	GetArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (*GetArticleByIdResp, error)
+	EditArticle(ctx context.Context, in *EditArticleReq, opts ...grpc.CallOption) (*EditArticleRes, error)
 }
 
 type articleServiceClient struct {
@@ -85,6 +86,15 @@ func (c *articleServiceClient) GetArticleById(ctx context.Context, in *GetArticl
 	return out, nil
 }
 
+func (c *articleServiceClient) EditArticle(ctx context.Context, in *EditArticleReq, opts ...grpc.CallOption) (*EditArticleRes, error) {
+	out := new(EditArticleRes)
+	err := c.cc.Invoke(ctx, "/article.ArticleService/EditArticle", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ArticleServiceServer is the server API for ArticleService service.
 // All implementations must embed UnimplementedArticleServiceServer
 // for forward compatibility
@@ -92,6 +102,7 @@ type ArticleServiceServer interface {
 	CreateArticle(context.Context, *CreateArticleRequest) (*CreateArticleResponse, error)
 	GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error
 	GetArticleById(context.Context, *GetArticleByIdReq) (*GetArticleByIdResp, error)
+	EditArticle(context.Context, *EditArticleReq) (*EditArticleRes, error)
 	mustEmbedUnimplementedArticleServiceServer()
 }
 
@@ -107,6 +118,9 @@ func (UnimplementedArticleServiceServer) GetArticles(*GetArticlesRequest, Articl
 }
 func (UnimplementedArticleServiceServer) GetArticleById(context.Context, *GetArticleByIdReq) (*GetArticleByIdResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetArticleById not implemented")
+}
+func (UnimplementedArticleServiceServer) EditArticle(context.Context, *EditArticleReq) (*EditArticleRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditArticle not implemented")
 }
 func (UnimplementedArticleServiceServer) mustEmbedUnimplementedArticleServiceServer() {}
 
@@ -178,6 +192,24 @@ func _ArticleService_GetArticleById_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArticleService_EditArticle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditArticleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArticleServiceServer).EditArticle(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/article.ArticleService/EditArticle",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArticleServiceServer).EditArticle(ctx, req.(*EditArticleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ArticleService_ServiceDesc is the grpc.ServiceDesc for ArticleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,6 +224,10 @@ var ArticleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetArticleById",
 			Handler:    _ArticleService_GetArticleById_Handler,
+		},
+		{
+			MethodName: "EditArticle",
+			Handler:    _ArticleService_EditArticle_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

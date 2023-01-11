@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -243,7 +242,7 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 	}
 
 	bx, err := json.MarshalIndent(result, "", "    ")
-	ioutil.WriteFile("zzz.json", bx, 0777)
+
 	if err != nil {
 		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot marshal opensearch response: %v", err)
@@ -270,4 +269,29 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		CreateTime: &tStamp,
 		NoOfViews:  int64(noOfViews),
 	}, nil
+}
+
+func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleReq) (*pb.EditArticleRes, error) {
+	// Get the document from opensearch
+
+	// Check if partial then fill a new struct
+
+	// Update query
+
+	fmt.Sprintf(`{
+		"query": {
+			"match": {
+				"id": "%v"
+			}
+		},
+		"script": {
+			"source": "ctx._source.title = params.title",
+			"lang": "painless",
+			"params": {
+				"title": "The first test article"
+			}
+		}
+	}`, req.GetId())
+
+	return &pb.EditArticleRes{}, nil
 }
