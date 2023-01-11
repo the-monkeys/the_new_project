@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/89minutes/the_new_project/user_profile_svc/user_service/database"
-	"github.com/89minutes/the_new_project/user_profile_svc/user_service/models"
 	"github.com/89minutes/the_new_project/user_profile_svc/user_service/pb"
 	"github.com/sirupsen/logrus"
 )
@@ -16,14 +15,15 @@ type UserService struct {
 }
 
 func (us *UserService) GetUserProfile(ctx context.Context, req *pb.GetUserProfileReq) (*pb.GetUserProfileRes, error) {
-	var user models.User
 
-	if result := us.DbClient.DB.Where(&models.User{Id: req.GetId()}).First(&user); result.Error != nil {
-		logrus.Infof("profile for user containing email: %s, doesn't exists", user.Email)
-
+	res := &pb.GetUserProfileRes{}
+	err := us.DbClient.Psql.QueryRow("select id, first_name, last_name, email, profile_pic from users where id=$1;", req.GetId()).Scan(
+		&res.Id, &res.FirstName, &res.LastName, &res.Email, &res.ProfilePic)
+	if err != nil {
+		logrus.Infof("cannot get profile for user containing id: %v, error: ", req.GetId(), err)
 		return nil, errors.New("cannot get the profile")
 	}
 
-	logrus.Infof("got the user: %+v", user)
-	return &pb.GetUserProfileRes{}, nil
+	logrus.Infof("fetched profile for the user containing id: %d", res.Id)
+	return res, nil
 }

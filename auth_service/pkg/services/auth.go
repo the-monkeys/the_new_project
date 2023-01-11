@@ -3,12 +3,14 @@ package services
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/89minutes/the_new_project/auth_service/pkg/db"
 	"github.com/89minutes/the_new_project/auth_service/pkg/models"
 	"github.com/89minutes/the_new_project/auth_service/pkg/pb"
 	"github.com/89minutes/the_new_project/auth_service/pkg/utils"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Server struct {
@@ -31,6 +33,10 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	user.LastName = req.LastName
 	user.Email = req.Email
 	user.Password = utils.HashPassword(req.Password)
+	user.CreateTime = timestamppb.New(time.Now()).String()
+	user.UpdateTime = timestamppb.New(time.Now()).String()
+	user.IsActive = true
+	user.Role = int32(pb.UserRole_USER_NORMAL)
 
 	s.H.DB.Create(&user)
 

@@ -12,6 +12,7 @@ message RegisterRequest {
   string lastName = 2;
   string email = 3;
   string password = 4;
+  UserRole role = 5;
 }
 
 message RegisterResponse {
@@ -19,6 +20,12 @@ message RegisterResponse {
   string error = 2;
 }
 
+enum UserRole {
+  USER_ADMIN = 0;
+  USER_NORMAL = 1;
+  USER_SUPPORT = 2;
+  USER_SECURITY = 3;
+}
 
 // Login
 message LoginRequest {

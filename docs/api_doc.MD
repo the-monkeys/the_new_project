@@ -36,3 +36,15 @@ curl --location --request POST 'http://localhost:5001/api/v1/article/' \
 }'
 
 ```
+
+## View Profile API
+```
+
+curl --location --request GET 'http://localhost:5001/api/v1/profile/user' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ5MDAzMzksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MywiRW1haWwiOiJraGFzYmFAbWFpbC5jb20ifQ.p8oKo8Ny1cSh67p_C7_oagTNdnIUpQxosz1sUSG4--k' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "id": 1
+}'
+
+```

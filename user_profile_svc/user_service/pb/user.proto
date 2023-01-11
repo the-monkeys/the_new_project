@@ -21,15 +21,17 @@ message GetUserProfileRes {
     bool isActive = 8;
     UserRole role = 9;
     google.protobuf.Timestamp lastLogin = 10;
+
+    enum UserRole {
+        USER_ADMIN = 0;
+        USER_NORMAL = 1;
+        USER_SUPPORT = 2;
+        USER_SECURITY = 3;
+    }
+    
 }
 
 
-enum UserRole {
-    USER_ADMIN = 0;
-    USER_NORMAL = 1;
-    USER_SUPPORT = 2;
-    USER_SECURITY = 3;
-}
 
 service UserService {
     rpc GetUserProfile(GetUserProfileReq) returns (GetUserProfileRes) {}
