@@ -18,6 +18,25 @@ message CreateArticleRequest {
   google.protobuf.Timestamp createTime = 7;
   google.protobuf.Timestamp updateTime = 8;
   bool quickRead = 9;
+  ContentOwnerShip contentOwnerShip = 10;
+  bool canEdit = 11;
+  repeated string viewBy = 12;
+  repeated Comment comment = 13;
+
+  enum ContentOwnerShip {
+    THE_USER = 0;
+    THE_MONKEYS = 1;
+    THE_PARTNER = 2;
+  }
+}
+
+message Comment {
+  string id = 1;
+  string commentator = 2;
+  string commentatorId = 3;
+  string comment = 4;
+
+  google.protobuf.Timestamp commentTime = 7;
 }
 
 message CreateArticleResponse {

@@ -40,6 +40,9 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		req.Id = uuid.New().String()
 	}
 
+	req.CanEdit = true
+	req.ContentOwnerShip = pb.CreateArticleRequest_THE_USER
+
 	// Store into the opensearch db
 	document := strings.NewReader(ArticleToString(req))
 
@@ -55,6 +58,12 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		return nil, err
 	}
 
+	if insertResponse.IsError() {
+		logrus.Errorf("opensearch apt failed to create a new document for user: %s, error: %v",
+			req.GetAuthor(), insertResponse.Status())
+		return nil, err
+	}
+
 	logrus.Infof("successfully created an article for user: %s, insert response: %+v",
 		req.Author, insertResponse)
 
@@ -66,15 +75,20 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 
 func ArticleToString(ip *pb.CreateArticleRequest) string {
 	return fmt.Sprintf(`{
-		"id":         	"%s",
-		"title":      	"%s",
-		"content":     	"%s",
-		"author":   	"%s",
-		"is_draft":    	"%v",
-		"tags": 		"%v",
-		"create_time": 	"%v",
-		"update_time": 	"%v",
-		"quick_read": 	"%v"
+		"id":         			"%s",
+		"title":      			"%s",
+		"content":     			"%s",
+		"author":   			"%s",
+		"is_draft":    			"%v",
+		"tags": 				"%v",
+		"create_time": 			"%v",
+		"update_time": 			"%v",
+		"quick_read": 			"%v",
+		"content_ownership": 	"%v",
+		"can_edit": 			"%v",
+		"viewed_by":			"%v",
+		"comments":				"%v"
 	}`, ip.Id, ip.Title, ip.Content, ip.Author, ip.IsDraft,
-		ip.Tags, ip.CreateTime, ip.UpdateTime, ip.QuickRead)
+		ip.Tags, ip.CreateTime, ip.UpdateTime, ip.QuickRead, ip.ContentOwnerShip,
+		ip.CanEdit, ip.ViewBy, ip.Comment)
 }
