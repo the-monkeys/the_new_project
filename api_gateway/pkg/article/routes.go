@@ -23,7 +23,7 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 
 	routes := r.Group("/api/v1/article")
 	routes.GET("/", svc.GetArticles)
-	routes.GET("/", svc.GetArticleById)
+	routes.GET("/:id", svc.GetArticleById)
 	routes.Use(mware.AuthRequired)
 	routes.POST("/", svc.CreateArticle)
 
@@ -66,7 +66,7 @@ func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
 
 	stream, err := svc.Client.GetArticles(context.Background(), &pb.GetArticlesRequest{})
 	if err != nil {
-		logrus.Infof("cannot connect to article stream rpc server, error: %v", err)
+		logrus.Errorf("cannot connect to article stream rpc server, error: %v", err)
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
@@ -89,5 +89,14 @@ func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
 }
 
 func (svc *ArticleServiceClient) GetArticleById(ctx *gin.Context) {
+	id := ctx.Param("id")
 
+	res, err := svc.Client.GetArticleById(context.Background(), &pb.GetArticleByIdReq{Id: id})
+	if err != nil {
+		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
 }

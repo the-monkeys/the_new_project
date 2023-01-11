@@ -57,3 +57,44 @@ type Shards struct {
 }
 
 // END of the Struct
+
+// GetArticleById
+type GetArticleById struct {
+	Shards struct {
+		Failed     int `json:"failed"`
+		Skipped    int `json:"skipped"`
+		Successful int `json:"successful"`
+		Total      int `json:"total"`
+	} `json:"_shards"`
+	Hits struct {
+		Hits []struct {
+			ID     string  `json:"_id"`
+			Index  string  `json:"_index"`
+			Score  float64 `json:"_score"`
+			Source struct {
+				Author           string `json:"author"`
+				CanEdit          string `json:"can_edit"`
+				Comments         string `json:"comments"`
+				Content          string `json:"content"`
+				ContentOwnership string `json:"content_ownership"`
+				CreateTime       string `json:"create_time"`
+				ID               string `json:"id"`
+				IsDraft          string `json:"is_draft"`
+				QuickRead        string `json:"quick_read"`
+				Tags             string `json:"tags"`
+				Title            string `json:"title"`
+				UpdateTime       string `json:"update_time"`
+				ViewedBy         string `json:"viewed_by"`
+			} `json:"_source"`
+		} `json:"hits"`
+		MaxScore float64 `json:"max_score"`
+		Total    struct {
+			Relation string `json:"relation"`
+			Value    int    `json:"value"`
+		} `json:"total"`
+	} `json:"hits"`
+	TimedOut bool `json:"timed_out"`
+	Took     int  `json:"took"`
+}
+
+// End of the struct

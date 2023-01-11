@@ -74,5 +74,5 @@ message GetArticleByIdResp {
 service ArticleService {
   rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
   rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
-  rpc GetArticleById (GetArticleByIdReq) returns (stream GetArticleByIdResp){};
+  rpc GetArticleById (GetArticleByIdReq) returns (GetArticleByIdResp){};
 }

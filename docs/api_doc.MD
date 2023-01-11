@@ -48,3 +48,13 @@ curl --location --request GET 'http://localhost:5001/api/v1/profile/user' \
 }'
 
 ```
+
+## Get Dashboard Articles
+```
+curl --location --request GET 'http://localhost:5001/api/v1/article/'
+```
+
+## Get Article by Id
+```
+curl --location --request GET 'http://localhost:5001/api/v1/article/a0b81286-bfdd-49f1-8bb3-56ace2918736'
+```

@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -18,6 +18,8 @@ import (
 	"github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -154,8 +156,6 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 
 	articles := ParseToStruct(arts)
 	for _, article := range articles {
-		log.Printf("Article %+v", article)
-
 		if err := stream.Send(&article); err != nil {
 			logrus.Errorf("error while sending stream, error %+v", err)
 		}
@@ -210,5 +210,64 @@ func SplitSecondsAndNanos(tStamp string) (timestamppb.Timestamp, error) {
 	return timestamppb.Timestamp{
 		Seconds: seconds,
 		Nanos:   int32(nanos),
+	}, nil
+}
+
+func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.GetArticleByIdResp, error) {
+	query := fmt.Sprintf(`{
+		"query": {
+			"match": {
+				"id": "%s"
+			}
+		}
+	}`, req.GetId())
+	content := strings.NewReader(query)
+
+	search := opensearchapi.SearchRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(ctx, srv.osClient)
+	if err != nil {
+		fmt.Println("failed to search document ", err)
+		os.Exit(1)
+	}
+
+	var result map[string]interface{}
+
+	decoder := json.NewDecoder(searchResponse.Body)
+	if err := decoder.Decode(&result); err != nil {
+		logrus.Error("error while decoding, error", err)
+		return nil, status.Errorf(codes.Internal, "cannot decode opensearch response: %v", err)
+	}
+
+	bx, err := json.MarshalIndent(result, "", "    ")
+	ioutil.WriteFile("zzz.json", bx, 0777)
+	if err != nil {
+		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot marshal opensearch response: %v", err)
+	}
+
+	art := models.GetArticleById{}
+	if err := json.Unmarshal(bx, &art); err != nil {
+		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
+	}
+
+	tStamp, err := SplitSecondsAndNanos(art.Hits.Hits[0].Source.CreateTime)
+	if err != nil {
+		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
+	}
+
+	noOfViews := len(strings.Split(art.Hits.Hits[0].Source.ViewedBy, ","))
+
+	return &pb.GetArticleByIdResp{
+		Id:         art.Hits.Hits[0].Source.ID,
+		Title:      art.Hits.Hits[0].Source.Title,
+		Author:     art.Hits.Hits[0].Source.Author,
+		Content:    art.Hits.Hits[0].Source.Content,
+		CreateTime: &tStamp,
+		NoOfViews:  int64(noOfViews),
 	}, nil
 }
