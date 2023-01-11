@@ -205,7 +205,6 @@ func SplitSecondsAndNanos(tStamp string) (timestamppb.Timestamp, error) {
 	nanos, err := strconv.ParseInt(second[1], 10, 64)
 	if err != nil {
 		return timestamppb.Timestamp{}, err
-
 	}
 
 	return timestamppb.Timestamp{

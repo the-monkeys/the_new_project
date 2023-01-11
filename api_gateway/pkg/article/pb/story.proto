@@ -30,16 +30,28 @@ message GetArticlesRequest{}
 message GetArticlesResponse {
   string Id = 1;
   string title = 2;
-  string content  = 3;
-  string Author = 4;
-  google.protobuf.Timestamp createTime = 5;
-  bool quickRead = 6;
-  repeated string viewBy = 7;
+  string Author = 3;
+  google.protobuf.Timestamp createTime = 4;
+  bool quickRead = 5;
+  repeated string viewBy = 6;
 }
 
+message GetArticleByIdReq {
+  string Id = 1;
+}
 
+message GetArticleByIdResp {
+  string Id = 1;
+  string title = 2;
+  string author = 4;
+  string content = 5;
+  google.protobuf.Timestamp createTime = 6;
+  bool quickRead = 7;
+  int64 noOfViews = 8;
+}
   
   service ArticleService {
     rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
     rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
+    rpc GetArticleById (GetArticleByIdReq) returns (stream GetArticleByIdResp){};
   }

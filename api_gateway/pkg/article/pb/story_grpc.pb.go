@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ArticleServiceClient interface {
 	CreateArticle(ctx context.Context, in *CreateArticleRequest, opts ...grpc.CallOption) (*CreateArticleResponse, error)
 	GetArticles(ctx context.Context, in *GetArticlesRequest, opts ...grpc.CallOption) (ArticleService_GetArticlesClient, error)
+	GetArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (ArticleService_GetArticleByIdClient, error)
 }
 
 type articleServiceClient struct {
@@ -75,12 +76,45 @@ func (x *articleServiceGetArticlesClient) Recv() (*GetArticlesResponse, error) {
 	return m, nil
 }
 
+func (c *articleServiceClient) GetArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (ArticleService_GetArticleByIdClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ArticleService_ServiceDesc.Streams[1], "/auth.ArticleService/GetArticleById", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &articleServiceGetArticleByIdClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ArticleService_GetArticleByIdClient interface {
+	Recv() (*GetArticleByIdResp, error)
+	grpc.ClientStream
+}
+
+type articleServiceGetArticleByIdClient struct {
+	grpc.ClientStream
+}
+
+func (x *articleServiceGetArticleByIdClient) Recv() (*GetArticleByIdResp, error) {
+	m := new(GetArticleByIdResp)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ArticleServiceServer is the server API for ArticleService service.
 // All implementations must embed UnimplementedArticleServiceServer
 // for forward compatibility
 type ArticleServiceServer interface {
 	CreateArticle(context.Context, *CreateArticleRequest) (*CreateArticleResponse, error)
 	GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error
+	GetArticleById(*GetArticleByIdReq, ArticleService_GetArticleByIdServer) error
 	mustEmbedUnimplementedArticleServiceServer()
 }
 
@@ -93,6 +127,9 @@ func (UnimplementedArticleServiceServer) CreateArticle(context.Context, *CreateA
 }
 func (UnimplementedArticleServiceServer) GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetArticles not implemented")
+}
+func (UnimplementedArticleServiceServer) GetArticleById(*GetArticleByIdReq, ArticleService_GetArticleByIdServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetArticleById not implemented")
 }
 func (UnimplementedArticleServiceServer) mustEmbedUnimplementedArticleServiceServer() {}
 
@@ -146,6 +183,27 @@ func (x *articleServiceGetArticlesServer) Send(m *GetArticlesResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _ArticleService_GetArticleById_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetArticleByIdReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ArticleServiceServer).GetArticleById(m, &articleServiceGetArticleByIdServer{stream})
+}
+
+type ArticleService_GetArticleByIdServer interface {
+	Send(*GetArticleByIdResp) error
+	grpc.ServerStream
+}
+
+type articleServiceGetArticleByIdServer struct {
+	grpc.ServerStream
+}
+
+func (x *articleServiceGetArticleByIdServer) Send(m *GetArticleByIdResp) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // ArticleService_ServiceDesc is the grpc.ServiceDesc for ArticleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +220,11 @@ var ArticleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetArticles",
 			Handler:       _ArticleService_GetArticles_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetArticleById",
+			Handler:       _ArticleService_GetArticleById_Handler,
 			ServerStreams: true,
 		},
 	},

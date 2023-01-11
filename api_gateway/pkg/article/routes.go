@@ -23,6 +23,7 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 
 	routes := r.Group("/api/v1/article")
 	routes.GET("/", svc.GetArticles)
+	routes.GET("/", svc.GetArticleById)
 	routes.Use(mware.AuthRequired)
 	routes.POST("/", svc.CreateArticle)
 
@@ -85,4 +86,8 @@ func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, response)
+}
+
+func (svc *ArticleServiceClient) GetArticleById(ctx *gin.Context) {
+
 }
