@@ -30,7 +30,7 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	body := CreateArticleRequestBody{}
 
 	if err := ctx.BindJSON(&body); err != nil {
-		logrus.Info("incomplete body, error", err)
+		logrus.Errorf("incomplete body, error", err)
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -50,7 +50,7 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		logrus.Info("cannot connect to article rpc server, error", err)
+		logrus.Infof("cannot connect to article rpc server, error: %v", err)
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}

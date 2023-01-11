@@ -18,6 +18,7 @@ func InitArticleServiceClient(c *config.Config) pb.ArticleServiceClient {
 
 	if err != nil {
 		fmt.Println("Could not connect:", err)
+		return nil
 	}
 
 	return pb.NewArticleServiceClient(cc)
