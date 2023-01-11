@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/89minutes/the_new_project/article_and_post/pkg/database"
@@ -16,6 +18,7 @@ import (
 	"github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type ArticleServer struct {
@@ -96,7 +99,6 @@ func ArticleToString(ip *pb.CreateArticleRequest) string {
 }
 
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
-	// TODO: Get All the articles and stream in the for loop
 
 	// Search for the document.
 	content := strings.NewReader(`{
@@ -130,21 +132,31 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 		fmt.Println("failed to search document ", err)
 		os.Exit(1)
 	}
-	fmt.Println("Searching for a document")
-	// fmt.Println(searchResponse.)
+
 	var result map[string]interface{}
-	// resp := []pb.GetArticlesResponse{}
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
 		logrus.Error("Error while decoding, error", err)
 	}
 
-	documents := result["hits"].(map[string]interface{})["hits"].([]interface{})
-	fmt.Println("Length of doc: ", len(documents))
-	for _, doc := range documents {
-		resp := ParseToStruct(doc)
-		if err := stream.Send(&resp); err != nil {
+	bx, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return err
+	}
+
+	arts := models.ArticlesForTheMainPage{}
+	if err := json.Unmarshal(bx, &arts); err != nil {
+		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return err
+	}
+
+	articles := ParseToStruct(arts)
+	for _, article := range articles {
+		log.Printf("Article %+v", article)
+
+		if err := stream.Send(&article); err != nil {
 			logrus.Errorf("error while sending stream, error %+v", err)
 		}
 	}
@@ -152,33 +164,52 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 	return nil
 }
 
-func ParseToStruct(result interface{}) pb.GetArticlesResponse {
-	// logrus.Infof("Struct**********: %+v", result.(map[string]interface{}))
-	instance := models.GetArticleResp{}
-	layer1 := result.(map[string]interface{})
-	logrus.Infof("Layer 1: %+v", layer1["_source"])
-	byteSlice, err := json.MarshalIndent(layer1["_source"], "", "    ")
+func ParseToStruct(result models.ArticlesForTheMainPage) []pb.GetArticlesResponse {
+	var resp []pb.GetArticlesResponse
+
+	for _, val := range result.Hits.Hits {
+		qRead := false
+		if val.Source.QuickRead == "true" {
+			qRead = true
+		}
+
+		tStamp, err := SplitSecondsAndNanos(val.Source.CreateTime)
+		if err != nil {
+			logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
+		}
+
+		res := pb.GetArticlesResponse{
+			Id:         val.Source.ID,
+			Title:      val.Source.Title,
+			Author:     val.Source.Author,
+			CreateTime: &tStamp,
+			QuickRead:  qRead,
+			// ViewBy:    instance.ViewedBy,
+		}
+		resp = append(resp, res)
+	}
+
+	return resp
+}
+
+func SplitSecondsAndNanos(tStamp string) (timestamppb.Timestamp, error) {
+	secAndNano := strings.Split(tStamp, " ")
+	first := strings.Split(secAndNano[0], ":")
+	second := strings.Split(secAndNano[1], ":")
+
+	seconds, err := strconv.ParseInt(first[1], 10, 64)
 	if err != nil {
-		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
-		return pb.GetArticlesResponse{}
+		return timestamppb.Timestamp{}, err
 	}
 
-	if err := json.Unmarshal(byteSlice, &instance); err != nil {
-		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
-		return pb.GetArticlesResponse{}
-	}
-	logrus.Infof("byteslice: %s", string(byteSlice))
+	nanos, err := strconv.ParseInt(second[1], 10, 64)
+	if err != nil {
+		return timestamppb.Timestamp{}, err
 
-	qRead := false
-	if instance.QuickRead == "true" {
-		qRead = true
 	}
-	return pb.GetArticlesResponse{
-		Id:     instance.ID,
-		Title:  instance.Title,
-		Author: instance.Author,
-		// CreateTime: instance.CreateTime,
-		QuickRead: qRead,
-		// ViewBy:    instance.ViewedBy,
-	}
+
+	return timestamppb.Timestamp{
+		Seconds: seconds,
+		Nanos:   int32(nanos),
+	}, nil
 }
