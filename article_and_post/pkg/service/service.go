@@ -273,25 +273,77 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 
 func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleReq) (*pb.EditArticleRes, error) {
 	// Get the document from opensearch
+	existingArticle, err := srv.GetArticleById(ctx, &pb.GetArticleByIdReq{Id: req.GetId()})
+	if err != nil {
+		logrus.Errorf("cannot get the existing article, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot get the existing article, error: %v", err)
+	}
 
 	// Check if partial then fill a new struct
+	artToBeUpdated := PartialOrAllUpdate(req.GetMethod(), existingArticle, req)
+	logrus.Infof("Article to be updated: %+v", artToBeUpdated)
 
 	// Update query
-
-	fmt.Sprintf(`{
+	updateQuery := fmt.Sprintf(`
+	
+	{
 		"query": {
 			"match": {
-				"id": "%v"
+				"id": "%s"
 			}
 		},
 		"script": {
-			"source": "ctx._source.title = params.title",
+			"source": "ctx._source.title = params.title; ctx._source.content = params.content",
 			"lang": "painless",
 			"params": {
-				"title": "The first test article"
+				"title": "%s",
+				"content": "%s"
 			}
 		}
-	}`, req.GetId())
+	}`, artToBeUpdated.GetId(), artToBeUpdated.Title, artToBeUpdated.Content)
+	document := strings.NewReader(updateQuery)
 
-	return &pb.EditArticleRes{}, nil
+	updateReq := opensearchapi.UpdateByQueryRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  document,
+	}
+
+	fmt.Println(updateQuery)
+	updateRes, err := updateReq.Do(ctx, srv.osClient)
+	if err != nil {
+		logrus.Errorf("failed to update the document, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+	logrus.Infof("Updateed: %+v", updateRes)
+	if updateRes.IsError() {
+		logrus.Errorf("failed to update the document, bad request, error: %+v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "cannot update the document, error: %v", err)
+	}
+
+	return &pb.EditArticleRes{
+		Status: http.StatusCreated,
+		Id:     artToBeUpdated.Id,
+	}, nil
+}
+
+func PartialOrAllUpdate(method string, existingArt *pb.GetArticleByIdResp, reqArt *pb.EditArticleReq) *pb.EditArticleReq {
+	procdArt := &pb.EditArticleReq{Id: reqArt.Id}
+
+	if method == http.MethodPatch {
+		if reqArt.Title == "" {
+			procdArt.Title = existingArt.Title
+		} else {
+			procdArt.Title = reqArt.Title
+		}
+		if reqArt.Content == "" {
+			procdArt.Content = existingArt.Content
+		} else {
+			procdArt.Content = reqArt.Content
+		}
+	} else {
+		procdArt.Title = reqArt.Title
+		procdArt.Content = reqArt.Content
+	}
+
+	return procdArt
 }
