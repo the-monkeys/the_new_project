@@ -33,6 +33,8 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 
 }
 
+// TODO: Check for all the errors being returned by the gRPC servers...
+
 func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	body := CreateArticleRequestBody{}
 
