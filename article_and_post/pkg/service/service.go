@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -130,8 +129,8 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 
 	searchResponse, err := search.Do(context.Background(), srv.osClient)
 	if err != nil {
-		fmt.Println("failed to search document ", err)
-		os.Exit(1)
+		logrus.Errorf("failed to search document, error: %+v", err)
+		return status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
 	}
 
 	var result map[string]interface{}
@@ -229,15 +228,15 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 
 	searchResponse, err := search.Do(ctx, srv.osClient)
 	if err != nil {
-		fmt.Println("failed to search document ", err)
-		os.Exit(1)
+		logrus.Errorf("failed to find document, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
 	}
 
 	var result map[string]interface{}
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
-		logrus.Error("error while decoding, error", err)
+		logrus.Error("error while decoding result, error", err)
 		return nil, status.Errorf(codes.Internal, "cannot decode opensearch response: %v", err)
 	}
 

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 
 	"github.com/89minutes/the_new_project/article_and_post/pkg/config"
 	"github.com/89minutes/the_new_project/article_and_post/pkg/pb"
 	"github.com/89minutes/the_new_project/article_and_post/pkg/service"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -30,7 +30,7 @@ func main() {
 
 	pb.RegisterArticleServiceServer(grpcServer, articleServer)
 
-	fmt.Println("art and post service is running on address: ", cfg.ArticleServerPort)
+	logrus.Info("art and post service is running on address: ", cfg.ArticleServerPort)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
 	}

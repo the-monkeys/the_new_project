@@ -58,3 +58,14 @@ curl --location --request GET 'http://localhost:5001/api/v1/article/'
 ```
 curl --location --request GET 'http://localhost:5001/api/v1/article/a0b81286-bfdd-49f1-8bb3-56ace2918736'
 ```
+
+## Edit Article 
+```
+curl --location --request PATCH 'http://localhost:5001/api/v1/article/post/a0b81286-bfdd-49f1-8bb3-56ace2918736' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ5MDAzMzksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MywiRW1haWwiOiJraGFzYmFAbWFpbC5jb20ifQ.p8oKo8Ny1cSh67p_C7_oagTNdnIUpQxosz1sUSG4--k' \
+--data-raw '{
+    "title": "Changed title 11"
+
+}'
+```

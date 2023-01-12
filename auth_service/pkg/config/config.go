@@ -3,7 +3,7 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	Port         string `mapstructure:"AUTH_SERVICE_PORT"`
+	AuthAddr     string `mapstructure:"AUTH_SERVICE_PORT"`
 	DBUrl        string `mapstructure:"DB_URL"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 }
