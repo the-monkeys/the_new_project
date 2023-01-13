@@ -21,6 +21,7 @@ type Server struct {
 
 func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var user models.User
+	var passReset models.PasswordReset
 
 	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
 		return &pb.RegisterResponse{
@@ -38,7 +39,10 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	user.IsActive = true
 	user.Role = int32(pb.UserRole_USER_NORMAL)
 
+	passReset.Email = req.Email
+
 	s.H.DB.Create(&user)
+	s.H.DB.Create(&passReset)
 
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
