@@ -32,6 +32,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes := router.Group("/api/v1/auth")
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
+	routes.POST("/reset_password", asc.ResetPassword)
 
 	return asc
 }
@@ -73,6 +74,40 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 	res, err := asc.Client.Login(context.Background(), &pb.LoginRequest{
 		Email:    b.Email,
 		Password: b.Password,
+	})
+
+	if err != nil {
+		logrus.Errorf("internal server error, user containing email: %s cannot login", b.Email)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+		logrus.Infof("user containing email: %s, doesn't exists", b.Email)
+		ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+		logrus.Infof("incorrect password given for the user containing email: %s", b.Email)
+		ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
+func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
+	// Login(ctx, asc.Client)
+	b := ResetPass{}
+
+	if err := ctx.BindJSON(&b); err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
+		Email: b.Email,
 	})
 
 	if err != nil {

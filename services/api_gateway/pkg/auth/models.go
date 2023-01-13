@@ -11,3 +11,7 @@ type RegisterRequestBody struct {
 	Email     string `json:"email"`
 	Password  string `json:"password"`
 }
+
+type ResetPass struct {
+	Email string `json:"email"`
+}
