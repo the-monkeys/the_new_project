@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: article_and_post/pkg/pb/article.proto
+// source: services/article_and_post/pkg/pb/article.proto
 
 package pb
 
@@ -237,5 +237,5 @@ var ArticleService_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "article_and_post/pkg/pb/article.proto",
+	Metadata: "services/article_and_post/pkg/pb/article.proto",
 }

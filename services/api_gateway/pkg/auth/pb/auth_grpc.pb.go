@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: api_gateway/pkg/auth/pb/auth.proto
+// source: services/api_gateway/pkg/auth/pb/auth.proto
 
 package pb
 
@@ -173,5 +173,5 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api_gateway/pkg/auth/pb/auth.proto",
+	Metadata: "services/api_gateway/pkg/auth/pb/auth.proto",
 }

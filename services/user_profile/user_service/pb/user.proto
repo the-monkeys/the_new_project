@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./services/user_profile_svc/user_service/pb";
+option go_package = "./services/user_profile/user_service/pb";
 
 import "google/protobuf/timestamp.proto";
 
