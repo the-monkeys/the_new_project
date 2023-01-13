@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package article;
+
+option go_package = "./services/article_and_post/pkg/pb";
+
+import "google/protobuf/timestamp.proto";
+
+
+// CreateArticleRequest
+message CreateArticleRequest {
+  string Id = 1;
+  string title = 2;
+  string content  = 3;
+  string Author = 4;
+  bool isDraft = 5;
+  repeated string Tags = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
+  bool quickRead = 9;
+  ContentOwnerShip contentOwnerShip = 10;
+  bool canEdit = 11;
+  repeated string viewBy = 12;
+  repeated Comment comment = 13;
+
+  enum ContentOwnerShip {
+    THE_USER = 0;
+    THE_MONKEYS = 1;
+    THE_PARTNER = 2;
+  }
+}
+
+message Comment {
+  string id = 1;
+  string commentator = 2;
+  string commentatorId = 3;
+  string comment = 4;
+
+  google.protobuf.Timestamp commentTime = 7;
+}
+
+message CreateArticleResponse {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
+message GetArticlesRequest{}
+
+message GetArticlesResponse {
+  string Id = 1;
+  string title = 2;
+  string Author = 3;
+  google.protobuf.Timestamp createTime = 4;
+  bool quickRead = 5;
+  repeated string viewBy = 6;
+}
+
+
+message GetArticleByIdReq {
+  string Id = 1;
+}
+
+message GetArticleByIdResp {
+  string Id = 1;
+  string title = 2;
+  string author = 3;
+  string content = 4;
+  google.protobuf.Timestamp createTime = 5;
+  bool quickRead = 6;
+  int64 noOfViews = 7;
+}
+
+message EditArticleReq {
+  string Id = 1;
+  string title = 2;
+  string content = 3;
+  string method = 4;
+}
+
+message EditArticleRes {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
+service ArticleService {
+  rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
+  rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
+  rpc GetArticleById (GetArticleByIdReq) returns (GetArticleByIdResp){};
+  rpc EditArticle (EditArticleReq) returns ( EditArticleRes){};
+}
