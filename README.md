@@ -25,3 +25,7 @@ OSPASSWORD=password
 USER_SERVICE_PORT=:50053
 
 ```
+
+
+# The current architecture diagram.
+![alt text](docs/current_architecture.jpg)
