@@ -6,6 +6,11 @@ type Config struct {
 	AuthAddr     string `mapstructure:"AUTH_SERVICE_PORT"`
 	DBUrl        string `mapstructure:"DB_URL"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
+
+	SMTPAddress  string `mapstructure:"SMTP_ADDRESS"`
+	SMTPMail     string `mapstructure:"SMTP_MAIL"`
+	SMTPPassword string `mapstructure:"SMTP_PASSWORD"`
+	SMTPHost     string `mapstructure:"SMTP_HOST"`
 }
 
 func LoadConfig() (config Config, err error) {

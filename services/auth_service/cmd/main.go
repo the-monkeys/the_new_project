@@ -35,8 +35,9 @@ func main() {
 	}
 
 	s := services.Server{
-		H:   h,
-		Jwt: jwt,
+		H:      h,
+		Jwt:    jwt,
+		Config: cfg,
 	}
 
 	grpcServer := grpc.NewServer()
