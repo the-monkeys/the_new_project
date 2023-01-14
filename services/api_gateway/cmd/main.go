@@ -18,6 +18,13 @@ func main() {
 	router := gin.Default()
 
 	authClient := auth.RegisterRouter(router, &cfg)
+
+	authClient.Log.SetReportCaller(true)
+	authClient.Log.SetFormatter(&logrus.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: false,
+	})
+
 	article.RegisterArticleRoutes(router, &cfg, authClient)
 	user_service.RegisterUserRouter(router, &cfg, authClient)
 
