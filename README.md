@@ -29,3 +29,14 @@ USER_SERVICE_PORT=:50053
 
 # The current architecture diagram.
 ![alt text](docs/current_architecture.jpg)
+
+
+# Contribution Guidelines:
+If you are want to contribute to the project, mail us at davetweetlive@gmail.com for access with your github account details. 
+
+* Once you get the access, pick an issue and code for it.
+* Raise a pull request(PR) against the main branch, rebase before raising the PR.
+* All the PRs need to be approved by [Dave Augustus](https://github.com/daveaugustus) before the merge.
+* Code consistency needs to be checked before raising the PR.
+* Spelling needs to be checked before the PR.
+* The sensitive information like environment variables shouldn't be in the code.
