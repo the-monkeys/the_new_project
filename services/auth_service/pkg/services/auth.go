@@ -133,8 +133,6 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 
 	emailVerifyHash := utils.HashPassword(string(randomHash))
 
-	logrus.Infof("Email randomHash hash: %+v", string(randomHash))
-	logrus.Infof("Email verification hash: %+v", string(emailVerifyHash))
 	// TODO: start a database transaction from here till all the process are complete
 	sqlStmt, err := s.H.Psql.Prepare("UPDATE password_resets SET recovery_hash=$1, time_out=$2, last_password_reset=$3 WHERE email=$4")
 	if err != nil {
@@ -157,9 +155,7 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
 
-	// **********************************************************************************************
-	// send email with hyperlink
-	// sender data
+	// **********************************SEND EMAIL WITH PW RESET LINK***************************************
 	fromEmail := s.Config.SMTPMail        //ex: "John.Doe@gmail.com"
 	smtpPassword := s.Config.SMTPPassword // ex: "ieiemcjdkejspqz"
 	address := s.Config.SMTPAddress
@@ -173,7 +169,6 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 
 	auth := smtp.PlainAuth("", fromEmail, smtpPassword, s.Config.SMTPHost)
 
-	// fmt.Println("message:", string(message))
 	if err = smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
 		logrus.Errorf("error occurred while sending verification email, error: %+v", err)
 		return &pb.ForgotPasswordRes{
@@ -186,5 +181,45 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 	return &pb.ForgotPasswordRes{
 		Status: 200,
 		Error:  "",
+	}, nil
+}
+
+func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+	var pwr models.PasswordReset
+	var user models.User
+	var timeOut string
+	if err := s.H.Psql.QueryRow("SELECT email,recovery_hash, time_out FROM password_resets WHERE email=$1;", req.GetEmail()).
+		Scan(&pwr.Email, &pwr.RecoveryHash, &timeOut); err != nil {
+		logrus.Errorf("cannot get the password recovery details, error: %v", err)
+		return nil, err
+	}
+
+	logrus.Infof("PWR: %+v", pwr)
+	logrus.Infof("timeOut: %+v", timeOut)
+
+	timeTill, err := time.Parse(time.RFC3339, timeOut)
+
+	if timeTill.Before(time.Now()) {
+		logrus.Errorf("the token has already expired, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
+	}
+
+	// Verify reset token
+	if ok := utils.CheckPasswordHash(req.Token, pwr.RecoveryHash); !ok {
+		logrus.Errorf("the token didn't match, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
+	}
+
+	if err := s.H.Psql.QueryRow("SELECT id, email FROM users WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Id, &user.Email); err != nil {
+		logrus.Errorf("cannot get the password recovery details, error: %v", err)
+		return nil, err
+	}
+
+	token, _ := s.Jwt.GenerateToken(user)
+	return &pb.ResetPasswordRes{
+		Status: 200,
+		Error:  "",
+		Token:  token,
 	}, nil
 }

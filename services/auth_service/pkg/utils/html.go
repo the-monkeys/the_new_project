@@ -471,7 +471,7 @@ func ResetPasswordTemplate(firstName, LastName, email, secret string) string {
 								  <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
 									<tr>
 									  <td align="center">
-										<a href="http://localhost:5001/resetpassword?user=` + email + `&evpw=` + secret + `" class="f-fallback button button--green" target="_blank">Reset your password</a>
+										<a href="http://localhost:5001/api/v1/auth/resetpassword?user=` + email + `&evpw=` + secret + `" class="f-fallback button button--green" target="_blank">Reset your password</a>
 									  </td>
 									</tr>
 								  </table>
