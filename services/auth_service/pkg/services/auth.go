@@ -2,25 +2,26 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"net/smtp"
-	"os"
 	"time"
 
+	"github.com/89minutes/the_new_project/services/auth_service/pkg/config"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/db"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/pb"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/utils"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Server struct {
-	H   db.Handler
-	Jwt utils.JwtWrapper
+	H      db.Handler
+	Jwt    utils.JwtWrapper
+	Config config.Config
 	pb.UnimplementedAuthServiceServer
 }
 
@@ -28,7 +29,7 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	var user models.User
 	var passReset models.PasswordReset
 
-	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
+	if result := s.H.GormConn.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusConflict,
 			Error:  "email already exists",
@@ -46,8 +47,8 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 
 	passReset.Email = req.Email
 
-	s.H.DB.Create(&user)
-	s.H.DB.Create(&passReset)
+	s.H.GormConn.Create(&user)
+	s.H.GormConn.Create(&passReset)
 
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
@@ -57,7 +58,7 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.User
 
-	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
+	if result := s.H.GormConn.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
 		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
@@ -96,7 +97,7 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 
 	var user models.User
 
-	if result := s.H.DB.Where(&models.User{Email: claims.Email}).First(&user); result.Error != nil {
+	if result := s.H.GormConn.Where(&models.User{Email: claims.Email}).First(&user); result.Error != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
@@ -109,73 +110,81 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 	}, nil
 }
 
-func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
 	var user models.User
-	var pass models.PasswordReset
-	// Check if email exists or not
-	if result := s.H.DB.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
-		return &pb.ResetPasswordRes{
-			Status: http.StatusNotFound,
-			Error:  "the email doesn't exist",
-		}, nil
+
+	if err := s.H.Psql.QueryRow("SELECT first_name, last_name, email from users where email=$1;", req.GetEmail()).Scan(
+		&user.FirstName, &user.LastName, &user.Email); err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			logrus.Errorf("cannot find the email %s, error: %v", req.Email, err)
+			return nil, status.Errorf(codes.NotFound, "the email isn't registered: %v", err)
+		}
+
+		logrus.Errorf("cannot fine the email %s, internal server error, error: %v", req.Email, err)
+		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
-	//
 
 	var alphaNumRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-	emailVerRandRune := make([]rune, 64)
+	randomHash := make([]rune, 64)
 	for i := 0; i < 64; i++ {
 		// Intn() returns, as an int, a non-negative pseudo-random number in [0,n).
-		emailVerRandRune[i] = alphaNumRunes[rand.Intn(len(alphaNumRunes)-1)]
+		randomHash[i] = alphaNumRunes[rand.Intn(len(alphaNumRunes)-1)]
 	}
 
-	emailVerPassword := string(emailVerRandRune)
-	// var emailVerPWhash []byte
-	// generate emailVerPassword hash for db
-	// func GenerateFromPassword(password []byte, cost int) ([]byte, error)
-	emailVerPWhash, err := bcrypt.GenerateFromPassword([]byte(emailVerPassword), bcrypt.DefaultCost)
+	emailVerifyHash := utils.HashPassword(string(randomHash))
+
+	logrus.Infof("Email randomHash hash: %+v", string(randomHash))
+	logrus.Infof("Email verification hash: %+v", string(emailVerifyHash))
+	// TODO: start a database transaction from here till all the process are complete
+	sqlStmt, err := s.H.Psql.Prepare("UPDATE password_resets SET recovery_hash=$1, time_out=$2, last_password_reset=$3 WHERE email=$4")
 	if err != nil {
-		logrus.Errorf("bcrypt err:", err)
-		return nil, err
+		logrus.Errorf("cannot prepare the reset link, error: %v", req.Email, err)
+		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
 
-	if res := s.H.DB.Model(&pass).Where("email = ?", req.Email).Updates(map[string]interface{}{"recovery_hash": string(emailVerPWhash),
-		"time_out": time.Now().Add(time.Minute * 5), "last_pass_reset": time.Now()}); res.Error != nil {
-		return &pb.ResetPasswordRes{
-			Status: http.StatusNotFound,
-			Error:  "the email doesn't exist",
-		}, nil
+	result, err := sqlStmt.Exec(emailVerifyHash, time.Now().Add(time.Minute*5), time.Now(), req.Email)
+	if err != nil {
+		logrus.Errorf("cannot sent the reset link, error: %v", req.Email, err)
+		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+	affectedRows, err := result.RowsAffected()
+	if err != nil {
+		logrus.Errorf("cannot check for affected, error: %v", req.Email, err)
+		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+	if affectedRows != 1 {
+		logrus.Errorf("more than 1 rows are getting affected, error: %v", req.Email, err)
+		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
 
 	// **********************************************************************************************
 	// send email with hyperlink
 	// sender data
-	from := os.Getenv("FromEmailAddr") //ex: "John.Doe@gmail.com"
-	password := os.Getenv("SMTPpwd")   // ex: "ieiemcjdkejspqz"
-	// receiver address privided through toEmail argument
+	fromEmail := s.Config.SMTPMail        //ex: "John.Doe@gmail.com"
+	smtpPassword := s.Config.SMTPPassword // ex: "ieiemcjdkejspqz"
+	address := s.Config.SMTPAddress
 	to := []string{req.Email}
-	// smtp - Simple Mail Transfer Protocol
-	host := "smtp.gmail.com"
-	port := "587"
-	address := host + ":" + port
-	// message
+
 	subject := "Subject: The Monkeys Account Recovery\n"
-	// localhost:8080 will be removed by many email service but works with online sites
-	// https must be used since we are sending personal data through url parameters
-	body := "<body><a rel=\"nofollow noopener noreferrer\" target=\"_blank\" href=\"http://localhost:5001/forgotpwchange?u=" + req.Email + "&evpw=" + emailVerPassword + "\">Change Password</a></body>"
+
+	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, user.Email, string(randomHash))
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	message := []byte(subject + mime + body)
-	// athentication data
-	// func PlainAuth(identity, username, password, host string) Auth
-	auth := smtp.PlainAuth("", from, password, host)
-	// func SendMail(addr string, a Auth, from string, to []string, msg []byte) error
-	fmt.Println("message:", string(message))
-	err = smtp.SendMail(address, auth, from, to, message)
-	if err != nil {
-		fmt.Println("error sending reset password email, err:", err)
+	message := []byte(subject + mime + emailBody)
+
+	auth := smtp.PlainAuth("", fromEmail, smtpPassword, s.Config.SMTPHost)
+
+	// fmt.Println("message:", string(message))
+	if err = smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
+		logrus.Errorf("error occurred while sending verification email, error: %+v", err)
+		return &pb.ForgotPasswordRes{
+			Status: int64(codes.Internal),
+			Error:  "cannot send email, please provide correct email id",
+		}, nil
 
 	}
 
-	return &pb.ResetPasswordRes{
+	return &pb.ForgotPasswordRes{
 		Status: 200,
+		Error:  "",
 	}, nil
 }

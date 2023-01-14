@@ -37,11 +37,11 @@ message ValidateResponse {
   int64 userId = 3;
 }
 
-message ResetPasswordReq {
+message ForgotPasswordReq {
   string email = 1;
 }
 
-message ResetPasswordRes {
+message ForgotPasswordRes {
   int64 status = 1;
   string error = 2;
   string token = 3;
@@ -51,5 +51,5 @@ service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
-  rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
+  rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
 }

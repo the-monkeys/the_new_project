@@ -25,7 +25,7 @@ type AuthServiceClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
-	ResetPassword(ctx context.Context, in *ResetPasswordReq, opts ...grpc.CallOption) (*ResetPasswordRes, error)
+	ForgotPassword(ctx context.Context, in *ForgotPasswordReq, opts ...grpc.CallOption) (*ForgotPasswordRes, error)
 }
 
 type authServiceClient struct {
@@ -63,9 +63,9 @@ func (c *authServiceClient) Validate(ctx context.Context, in *ValidateRequest, o
 	return out, nil
 }
 
-func (c *authServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordReq, opts ...grpc.CallOption) (*ResetPasswordRes, error) {
-	out := new(ResetPasswordRes)
-	err := c.cc.Invoke(ctx, "/auth.AuthService/ResetPassword", in, out, opts...)
+func (c *authServiceClient) ForgotPassword(ctx context.Context, in *ForgotPasswordReq, opts ...grpc.CallOption) (*ForgotPasswordRes, error) {
+	out := new(ForgotPasswordRes)
+	err := c.cc.Invoke(ctx, "/auth.AuthService/ForgotPassword", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ type AuthServiceServer interface {
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Validate(context.Context, *ValidateRequest) (*ValidateResponse, error)
-	ResetPassword(context.Context, *ResetPasswordReq) (*ResetPasswordRes, error)
+	ForgotPassword(context.Context, *ForgotPasswordReq) (*ForgotPasswordRes, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -96,8 +96,8 @@ func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*Lo
 func (UnimplementedAuthServiceServer) Validate(context.Context, *ValidateRequest) (*ValidateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Validate not implemented")
 }
-func (UnimplementedAuthServiceServer) ResetPassword(context.Context, *ResetPasswordReq) (*ResetPasswordRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ResetPassword not implemented")
+func (UnimplementedAuthServiceServer) ForgotPassword(context.Context, *ForgotPasswordReq) (*ForgotPasswordRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForgotPassword not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 
@@ -166,20 +166,20 @@ func _AuthService_Validate_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResetPasswordReq)
+func _AuthService_ForgotPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForgotPasswordReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).ResetPassword(ctx, in)
+		return srv.(AuthServiceServer).ForgotPassword(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.AuthService/ResetPassword",
+		FullMethod: "/auth.AuthService/ForgotPassword",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).ResetPassword(ctx, req.(*ResetPasswordReq))
+		return srv.(AuthServiceServer).ForgotPassword(ctx, req.(*ForgotPasswordReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -204,8 +204,8 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_Validate_Handler,
 		},
 		{
-			MethodName: "ResetPassword",
-			Handler:    _AuthService_ResetPassword_Handler,
+			MethodName: "ForgotPassword",
+			Handler:    _AuthService_ForgotPassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
