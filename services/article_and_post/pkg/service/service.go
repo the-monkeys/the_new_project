@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
+	"time"
 
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/database"
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
@@ -22,6 +22,7 @@ import (
 )
 
 type ArticleServer struct {
+	Log      logrus.Logger
 	osClient *opensearch.Client
 	pb.UnimplementedArticleServiceServer
 }
@@ -35,6 +36,7 @@ func NewArticleServer(url, username, password string) (*ArticleServer, error) {
 
 	return &ArticleServer{
 		osClient: client,
+		Log:      *logrus.New(),
 	}, nil
 }
 
@@ -45,11 +47,37 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		req.Id = uuid.New().String()
 	}
 
+	// Lower cased tags
+	for i, v := range req.Tags {
+		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
+	}
+	req.Title = strings.TrimSpace(req.Title)
+	req.Author = strings.TrimSpace(req.Author)
+	req.Content = strings.TrimSpace(req.Content)
+
 	req.CanEdit = true
 	req.ContentOwnerShip = pb.CreateArticleRequest_THE_USER
 
-	// Store into the opensearch db
-	document := strings.NewReader(ArticleToString(req))
+	post := models.Article{
+		Id:         req.Id,
+		Title:      req.Title,
+		Content:    req.Content,
+		Author:     req.Author,
+		IsDraft:    &req.IsDraft,
+		Tags:       req.Tags,
+		CreateTime: req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		UpdateTime: req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		QuickRead:  req.QuickRead,
+		CanEdit:    &req.CanEdit,
+		OwnerShip:  pb.CreateArticleRequest_THE_USER,
+	}
+	bs, err := json.Marshal(post)
+	if err != nil {
+		logrus.Errorf("cannot marshal the request, error: %v", err)
+		return nil, err
+	}
+
+	document := strings.NewReader(string(bs))
 
 	osReq := opensearchapi.IndexRequest{
 		Index:      utils.OpensearchArticleIndex,
@@ -78,30 +106,11 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 	}, nil
 }
 
-func ArticleToString(ip *pb.CreateArticleRequest) string {
-	return fmt.Sprintf(`{
-		"id":         			"%s",
-		"title":      			"%s",
-		"content":     			"%s",
-		"author":   			"%s",
-		"is_draft":    			"%v",
-		"tags": 				"%v",
-		"create_time": 			"%v",
-		"update_time": 			"%v",
-		"quick_read": 			"%v",
-		"content_ownership": 	"%v",
-		"can_edit": 			"%v",
-		"viewed_by":			"%v",
-		"comments":				"%v"
-	}`, ip.Id, ip.Title, ip.Content, ip.Author, ip.IsDraft,
-		ip.Tags, ip.CreateTime, ip.UpdateTime, ip.QuickRead, ip.ContentOwnerShip,
-		ip.CanEdit, ip.ViewBy, ip.Comment)
-}
-
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
-
 	// Search for the document.
-	content := strings.NewReader(`{
+	content := strings.NewReader(`
+	{
+		"size": 100,
 		"query": {
 			"match": {
 				"is_draft": "false"
@@ -113,11 +122,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 				"title",
 				"author",
 				"create_time",
-				"quick_read",
-				"viewed_by"
-			],
-			"excludes": [
-				"content"
+				"quick_read"
 			]
 		}
 	}`)
@@ -129,7 +134,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 
 	searchResponse, err := search.Do(context.Background(), srv.osClient)
 	if err != nil {
-		logrus.Errorf("failed to search document, error: %+v", err)
+		srv.Log.Errorf("failed to search document, error: %+v", err)
 		return status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
 	}
 
@@ -137,25 +142,25 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
-		logrus.Error("Error while decoding, error", err)
+		srv.Log.Error("Error while decoding, error", err)
 	}
 
 	bx, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
-		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		srv.Log.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
 		return err
 	}
 
 	arts := models.ArticlesForTheMainPage{}
 	if err := json.Unmarshal(bx, &arts); err != nil {
-		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		srv.Log.Errorf("cannot unmarshal byte slice, error: %+v", err)
 		return err
 	}
 
 	articles := ParseToStruct(arts)
 	for _, article := range articles {
 		if err := stream.Send(&article); err != nil {
-			logrus.Errorf("error while sending stream, error %+v", err)
+			srv.Log.Errorf("error while sending stream, error %+v", err)
 		}
 	}
 
@@ -166,43 +171,26 @@ func ParseToStruct(result models.ArticlesForTheMainPage) []pb.GetArticlesRespons
 	var resp []pb.GetArticlesResponse
 
 	for _, val := range result.Hits.Hits {
-		qRead := false
-		if val.Source.QuickRead == "true" {
-			qRead = true
-		}
-
-		tStamp, err := SplitSecondsAndNanos(val.Source.CreateTime)
+		t, err := time.Parse("2006-01-02T15:04:05Z07:00", val.Source.CreateTime)
 		if err != nil {
-			logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
+			logrus.Errorf("cannot parse the time, error: %v", err)
 		}
 
 		res := pb.GetArticlesResponse{
-			Id:         val.Source.ID,
-			Title:      val.Source.Title,
-			Author:     val.Source.Author,
-			CreateTime: &tStamp,
-			QuickRead:  qRead,
+			Id:     val.Source.ID,
+			Title:  val.Source.Title,
+			Author: val.Source.Author,
+			CreateTime: &timestamppb.Timestamp{
+				Seconds: int64(t.Second()),
+				Nanos:   int32(t.Nanosecond()),
+			},
+			QuickRead: val.Source.QuickRead,
 			// ViewBy:    instance.ViewedBy,
 		}
 		resp = append(resp, res)
 	}
 
 	return resp
-}
-
-func SplitSecondsAndNanos(tStamp string) (timestamppb.Timestamp, error) {
-	secAndNano := strings.Split(tStamp, " ")
-	first := strings.Split(secAndNano[0], ":")
-	second := strings.Split(secAndNano[1], ":")
-
-	seconds, _ := strconv.ParseInt(first[0], 10, 64)
-
-	nanos, _ := strconv.ParseInt(second[1], 10, 64)
-
-	return timestamppb.Timestamp{
-		Seconds: seconds,
-		Nanos:   int32(nanos),
-	}, nil
 }
 
 func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.GetArticleByIdResp, error) {
@@ -247,7 +235,7 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	tStamp, err := SplitSecondsAndNanos(art.Hits.Hits[0].Source.CreateTime)
+	// tStamp, err := SplitSecondsAndNanos(art.Hits.Hits[0].Source.CreateTime)
 	if err != nil {
 		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
 	}
@@ -259,7 +247,7 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		Title:      art.Hits.Hits[0].Source.Title,
 		Author:     art.Hits.Hits[0].Source.Author,
 		Content:    art.Hits.Hits[0].Source.Content,
-		CreateTime: &tStamp,
+		CreateTime: &timestamppb.Timestamp{},
 		NoOfViews:  int64(noOfViews),
 	}, nil
 }
