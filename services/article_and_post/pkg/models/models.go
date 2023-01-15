@@ -66,6 +66,7 @@ type Shards struct {
 // END of the Struct
 
 // GetArticleById
+
 type GetArticleById struct {
 	Took     int  `json:"took"`
 	TimedOut bool `json:"timed_out"`
