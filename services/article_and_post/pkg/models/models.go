@@ -90,42 +90,41 @@ type Shards struct {
 // END of the Struct
 
 // GetArticleById
+
 type GetArticleById struct {
-	Shards struct {
-		Failed     int `json:"failed"`
-		Skipped    int `json:"skipped"`
-		Successful int `json:"successful"`
+	Took     int  `json:"took"`
+	TimedOut bool `json:"timed_out"`
+	Shards   struct {
 		Total      int `json:"total"`
+		Successful int `json:"successful"`
+		Skipped    int `json:"skipped"`
+		Failed     int `json:"failed"`
 	} `json:"_shards"`
 	Hits struct {
-		Hits []struct {
-			ID     string  `json:"_id"`
+		Total struct {
+			Value    int    `json:"value"`
+			Relation string `json:"relation"`
+		} `json:"total"`
+		MaxScore float64 `json:"max_score"`
+		Hits     []struct {
 			Index  string  `json:"_index"`
+			ID     string  `json:"_id"`
 			Score  float64 `json:"_score"`
 			Source struct {
-				Author           string `json:"author"`
-				CanEdit          string `json:"can_edit"`
-				Comments         string `json:"comments"`
-				Content          string `json:"content"`
-				ContentOwnership string `json:"content_ownership"`
-				CreateTime       string `json:"create_time"`
-				ID               string `json:"id"`
-				IsDraft          string `json:"is_draft"`
-				QuickRead        string `json:"quick_read"`
-				Tags             string `json:"tags"`
-				Title            string `json:"title"`
-				UpdateTime       string `json:"update_time"`
-				ViewedBy         string `json:"viewed_by"`
+				ID               string   `json:"id"`
+				Title            string   `json:"title"`
+				Content          string   `json:"content"`
+				Author           string   `json:"author"`
+				IsDraft          bool     `json:"is_draft"`
+				Tags             []string `json:"tags"`
+				CreateTime       string   `json:"create_time"`
+				UpdateTime       string   `json:"update_time"`
+				QuickRead        bool     `json:"quick_read"`
+				CanEdit          bool     `json:"can_edit"`
+				ContentOwnership int      `json:"content_ownership"`
 			} `json:"_source"`
 		} `json:"hits"`
-		MaxScore float64 `json:"max_score"`
-		Total    struct {
-			Relation string `json:"relation"`
-			Value    int    `json:"value"`
-		} `json:"total"`
 	} `json:"hits"`
-	TimedOut bool `json:"timed_out"`
-	Took     int  `json:"took"`
 }
 
 // End of the struct

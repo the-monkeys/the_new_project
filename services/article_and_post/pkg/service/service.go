@@ -171,20 +171,17 @@ func ParseToStruct(result models.ArticlesForTheMainPage) []pb.GetArticlesRespons
 	var resp []pb.GetArticlesResponse
 
 	for _, val := range result.Hits.Hits {
-		t, err := time.Parse("2006-01-02T15:04:05Z07:00", val.Source.CreateTime)
+		t, err := time.Parse("2006-01-02T15:04:05Z", val.Source.CreateTime)
 		if err != nil {
 			logrus.Errorf("cannot parse the time, error: %v", err)
 		}
 
 		res := pb.GetArticlesResponse{
-			Id:     val.Source.ID,
-			Title:  val.Source.Title,
-			Author: val.Source.Author,
-			CreateTime: &timestamppb.Timestamp{
-				Seconds: int64(t.Second()),
-				Nanos:   int32(t.Nanosecond()),
-			},
-			QuickRead: val.Source.QuickRead,
+			Id:         val.Source.ID,
+			Title:      val.Source.Title,
+			Author:     val.Source.Author,
+			CreateTime: timestamppb.New(t),
+			QuickRead:  val.Source.QuickRead,
 			// ViewBy:    instance.ViewedBy,
 		}
 		resp = append(resp, res)
@@ -239,16 +236,16 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 	if err != nil {
 		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
 	}
-
-	noOfViews := len(strings.Split(art.Hits.Hits[0].Source.ViewedBy, ","))
-
+	t, err := time.Parse("2006-01-02T15:04:05Z", art.Hits.Hits[0].Source.CreateTime)
+	if err != nil {
+		logrus.Errorf("cannot parse the time, error: %v", err)
+	}
 	return &pb.GetArticleByIdResp{
 		Id:         art.Hits.Hits[0].Source.ID,
 		Title:      art.Hits.Hits[0].Source.Title,
 		Author:     art.Hits.Hits[0].Source.Author,
 		Content:    art.Hits.Hits[0].Source.Content,
-		CreateTime: &timestamppb.Timestamp{},
-		NoOfViews:  int64(noOfViews),
+		CreateTime: timestamppb.New(t),
 	}, nil
 }
 
