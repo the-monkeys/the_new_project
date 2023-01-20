@@ -8,12 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/database"
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/utils"
 	"github.com/google/uuid"
-	"github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -22,13 +20,13 @@ import (
 )
 
 type ArticleServer struct {
-	Log      logrus.Logger
-	osClient *opensearch.Client
+	Log      *logrus.Logger
+	osClient *openSearchClient
 	pb.UnimplementedArticleServiceServer
 }
 
-func NewArticleServer(url, username, password string) (*ArticleServer, error) {
-	client, err := database.NewOSClient(url, username, password)
+func NewArticleServer(url, username, password string, logrus *logrus.Logger) (*ArticleServer, error) {
+	client, err := newOpenSearchClient(url, username, password, logrus)
 	if err != nil {
 		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
 		return nil, err
@@ -36,7 +34,7 @@ func NewArticleServer(url, username, password string) (*ArticleServer, error) {
 
 	return &ArticleServer{
 		osClient: client,
-		Log:      *logrus.New(),
+		Log:      logrus,
 	}, nil
 }
 
@@ -73,37 +71,43 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		OwnerShip:   pb.CreateArticleRequest_THE_USER,
 		FolderPath:  "",
 	}
-	bs, err := json.Marshal(post)
+	resp, err := srv.osClient.CreateAnArticle(post)
 	if err != nil {
-		logrus.Errorf("cannot marshal the request, error: %v", err)
-		return nil, err
+		srv.Log.Errorf("cannot save the post, error: %+v", err)
 	}
 
-	document := strings.NewReader(string(bs))
+	srv.Log.Infof("The status code for the save post is: %v", resp.StatusCode)
+	// bs, err := json.Marshal(post)
+	// if err != nil {
+	// 	logrus.Errorf("cannot marshal the request, error: %v", err)
+	// 	return nil, err
+	// }
 
-	osReq := opensearchapi.IndexRequest{
-		Index:      utils.OpensearchArticleIndex,
-		DocumentID: req.Id,
-		Body:       document,
-	}
+	// document := strings.NewReader(string(bs))
 
-	insertResponse, err := osReq.Do(context.Background(), srv.osClient)
-	if err != nil {
-		logrus.Errorf("cannot create a new document for user: %s, error: %v", req.GetAuthor(), err)
-		return nil, err
-	}
+	// osReq := opensearchapi.IndexRequest{
+	// 	Index:      utils.OpensearchArticleIndex,
+	// 	DocumentID: req.Id,
+	// 	Body:       document,
+	// }
 
-	if insertResponse.IsError() {
-		logrus.Errorf("opensearch apt failed to create a new document for user: %s, error: %v",
-			req.GetAuthor(), insertResponse.Status())
-		return nil, err
-	}
+	// insertResponse, err := osReq.Do(context.Background(), srv.osClient.client)
+	// if err != nil {
+	// 	logrus.Errorf("cannot create a new document for user: %s, error: %v", req.GetAuthor(), err)
+	// 	return nil, err
+	// }
 
-	logrus.Infof("successfully created an article for user: %s, insert response: %+v",
-		req.Author, insertResponse)
+	// if insertResponse.IsError() {
+	// 	logrus.Errorf("opensearch apt failed to create a new document for user: %s, error: %v",
+	// 		req.GetAuthor(), insertResponse.Status())
+	// 	return nil, err
+	// }
+
+	// logrus.Infof("successfully created an article for user: %s, insert response: %+v",
+	// 	req.Author, insertResponse)
 
 	return &pb.CreateArticleResponse{
-		Status: http.StatusCreated,
+		Status: int64(resp.StatusCode),
 		Id:     article.Id,
 	}, nil
 }
@@ -134,7 +138,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 		Body:  content,
 	}
 
-	searchResponse, err := search.Do(context.Background(), srv.osClient)
+	searchResponse, err := search.Do(context.Background(), srv.osClient.client)
 	if err != nil {
 		srv.Log.Errorf("failed to search document, error: %+v", err)
 		return status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
@@ -207,7 +211,7 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		Body:  content,
 	}
 
-	searchResponse, err := search.Do(ctx, srv.osClient)
+	searchResponse, err := search.Do(ctx, srv.osClient.client)
 	if err != nil {
 		logrus.Errorf("failed to find document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
@@ -289,7 +293,7 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 	}
 
 	fmt.Println(updateQuery)
-	updateRes, err := updateReq.Do(ctx, srv.osClient)
+	updateRes, err := updateReq.Do(ctx, srv.osClient.client)
 	if err != nil {
 		logrus.Errorf("failed to update the document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
