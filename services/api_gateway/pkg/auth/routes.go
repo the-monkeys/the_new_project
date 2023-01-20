@@ -50,6 +50,8 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 		return
 	}
 
+	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
+
 	body.FirstName = strings.TrimSpace(body.FirstName)
 	body.LastName = strings.TrimSpace(body.LastName)
 	body.Email = strings.TrimSpace(body.Email)
@@ -73,6 +75,8 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 
 func (asc *ServiceClient) Login(ctx *gin.Context) {
 	body := LoginRequestBody{}
+
+	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
 
 	if err := ctx.BindJSON(&body); err != nil {
 		asc.Log.Errorf("json body is not correct, error: %v", err)
