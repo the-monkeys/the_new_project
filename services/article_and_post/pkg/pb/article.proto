@@ -20,23 +20,14 @@ message CreateArticleRequest {
   bool quickRead = 9;
   ContentOwnerShip contentOwnerShip = 10;
   bool canEdit = 11;
-  repeated string viewBy = 12;
-  repeated Comment comment = 13;
+  string AuthorEmail = 12;
+  string folderPath = 13;
 
   enum ContentOwnerShip {
     THE_USER = 0;
     THE_MONKEYS = 1;
     THE_PARTNER = 2;
   }
-}
-
-message Comment {
-  string id = 1;
-  string commentator = 2;
-  string commentatorId = 3;
-  string comment = 4;
-
-  google.protobuf.Timestamp commentTime = 7;
 }
 
 message CreateArticleResponse {
@@ -84,9 +75,26 @@ message EditArticleRes {
   string id = 3;
 }
 
+message CreateCommentReq {
+  string id = 1;
+  string ArticleId = 2;
+  string UserId = 3;
+  string comment = 4;
+
+  google.protobuf.Timestamp commentTime = 7;
+}
+
+message CreateCommentRes {
+  string articleId = 1;
+  string message = 2;
+  string error = 3;
+}
+
 service ArticleService {
   rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
   rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
   rpc GetArticleById (GetArticleByIdReq) returns (GetArticleByIdResp){};
   rpc EditArticle (EditArticleReq) returns ( EditArticleRes){};
+
+  rpc CreateComment(CreateCommentReq) returns (CreateCommentRes){};
 }

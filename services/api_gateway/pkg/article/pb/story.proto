@@ -17,6 +17,16 @@ import "google/protobuf/timestamp.proto";
     google.protobuf.Timestamp createTime = 7;
     google.protobuf.Timestamp updateTime = 8;
     bool quickRead = 9;
+    ContentOwnerShip contentOwnerShip = 10;
+    bool canEdit = 11;
+    string AuthorEmail = 12;
+    string folderPath = 13;
+
+    enum ContentOwnerShip {
+      THE_USER = 0;
+      THE_MONKEYS = 1;
+      THE_PARTNER = 2;
+    }
   }
   
   message CreateArticleResponse {

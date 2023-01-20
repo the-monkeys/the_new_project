@@ -26,6 +26,11 @@ func main() {
 	}
 
 	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword)
+	articleServer.Log.SetReportCaller(true)
+	articleServer.Log.SetFormatter(&logrus.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: false,
+	})
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterArticleServiceServer(grpcServer, articleServer)
