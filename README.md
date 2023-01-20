@@ -1,31 +1,18 @@
-# the_new_project
+# The Monkeys
 
+Welcome to The Monkeys, an educational and informational blogging platform!
 
-### To setup this locally in linux machine, lease install
-* Postgres
-* Opensearch
+We are dedicated to providing a space for individuals to share their knowledge and experiences on a variety of topics. Our platform is designed to be a resource for people looking to learn new things and expand their understanding of the world.
 
-NODE: Have a config file in /etc/the_monkeys/dev.env
-```
-PORT=0.0.0.0:5001
-AUTH_SVC_URL=localhost:50051
-STORY_SVC_URL=localhost:50052
-USER_SVC_URL=localhost:50053
+We invite readers/writers/experts to bring a diverse range of perspectives to the table, share their insights on everything from science and technology to personal development and self-improvement, psychology, philosophy, fashion, health and lifestyle etc.
 
+We believe that learning should be accessible to everyone, and that's why we offer our content. Our platform is open to anyone who wants to read, learn, and grow.
 
-AUTH_SERVICE_PORT=:50051
-DB_URL=postgres://user:password@localhost:5432/dbname
-JWT_SECRET_KEY=secret_key
+We also believe in the power of community. Our platform encourages engagement and conversation, and we welcome feedback and suggestions from our readers.
 
-ARTICLE_SERVICE_PORT=:50052
-OPENSEARCH_ADDRESS=https://localhost:9200
-OSUSERNAME=username
-OSPASSWORD=password
+Thank you for visiting our platform. We hope you find it informative and educational, and that you come back often to learn and grow with us.
 
-USER_SERVICE_PORT=:50053
-
-```
-
+<br>
 
 # The current architecture diagram.
 ![alt text](docs/current_architecture.jpg)
@@ -40,3 +27,8 @@ If you are want to contribute to the project, mail us at davetweetlive@gmail.com
 * Code consistency needs to be checked before raising the PR.
 * Spelling needs to be checked before the PR.
 * The sensitive information like environment variables shouldn't be in the code.
+* Linting needs to be checked.
+
+# Local setup Guideline
+
+Follow through [contribution docs](contribution/contribution.MD) for setting up the project locally
