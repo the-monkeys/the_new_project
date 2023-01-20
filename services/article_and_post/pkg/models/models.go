@@ -5,17 +5,19 @@ import (
 )
 
 type Article struct {
-	Id         string                                   `json:"id"`
-	Title      string                                   `json:"title"`
-	Content    string                                   `json:"content"`
-	Author     string                                   `json:"author"`
-	IsDraft    *bool                                    `json:"is_draft"`
-	Tags       []string                                 `json:"tags"`
-	CreateTime string                                   `json:"create_time"`
-	UpdateTime string                                   `json:"update_time"`
-	QuickRead  bool                                     `json:"quick_read"`
-	CanEdit    *bool                                    `json:"can_edit"`
-	OwnerShip  pb.CreateArticleRequest_ContentOwnerShip `json:"content_ownership"`
+	Id          string                                   `json:"id"`
+	Title       string                                   `json:"title"`
+	Content     string                                   `json:"content"`
+	Author      string                                   `json:"author"`
+	AuthorEmail string                                   `json:"author_email"`
+	IsDraft     *bool                                    `json:"is_draft"`
+	Tags        []string                                 `json:"tags"`
+	CreateTime  string                                   `json:"create_time"`
+	UpdateTime  string                                   `json:"update_time"`
+	QuickRead   bool                                     `json:"quick_read"`
+	CanEdit     *bool                                    `json:"can_edit"`
+	OwnerShip   pb.CreateArticleRequest_ContentOwnerShip `json:"content_ownership"`
+	FolderPath  string                                   `json:"folder_path"`
 }
 
 type GetArticleResp struct {
@@ -27,32 +29,6 @@ type GetArticleResp struct {
 	ViewedBy   string `json:"viewed_by"`
 }
 
-//
-// type ArticlesForTheMainPage struct {
-// 	Shards Shards `json:"_shards"`
-// 	Hits   struct {
-// 		Hits []struct {
-// 			ID     string  `json:"_id"`
-// 			Index  string  `json:"_index"`
-// 			Score  float64 `json:"_score"`
-// 			Source struct {
-// 				Author     string `json:"author"`
-// 				CreateTime string `json:"create_time"`
-// 				ID         string `json:"id"`
-// 				QuickRead  string `json:"quick_read"`
-// 				Title      string `json:"title"`
-// 				ViewedBy   string `json:"viewed_by"`
-// 			} `json:"_source"`
-// 		} `json:"hits"`
-// 		MaxScore float64 `json:"max_score"`
-// 		Total    struct {
-// 			Relation string `json:"relation"`
-// 			Value    int    `json:"value"`
-// 		} `json:"total"`
-// 	} `json:"hits"`
-// 	TimedOut bool `json:"timed_out"`
-// 	Took     int  `json:"took"`
-// }
 type ArticlesForTheMainPage struct {
 	Shards struct {
 		Total      int `json:"total"`
@@ -90,7 +66,6 @@ type Shards struct {
 // END of the Struct
 
 // GetArticleById
-
 type GetArticleById struct {
 	Took     int  `json:"took"`
 	TimedOut bool `json:"timed_out"`

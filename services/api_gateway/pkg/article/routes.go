@@ -48,14 +48,15 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 
 	isShort := len(body.Content) <= 1000
 	res, err := svc.Client.CreateArticle(context.Background(), &pb.CreateArticleRequest{
-		Title:      body.Title,
-		Content:    body.Content,
-		Author:     body.Author,
-		IsDraft:    body.IsDraft,
-		Tags:       body.Tags,
-		CreateTime: timestamppb.New(time.Now()),
-		UpdateTime: timestamppb.New(time.Now()),
-		QuickRead:  isShort,
+		Title:       body.Title,
+		Content:     body.Content,
+		Author:      body.Author,
+		IsDraft:     body.IsDraft,
+		Tags:        body.Tags,
+		CreateTime:  timestamppb.New(time.Now()),
+		UpdateTime:  timestamppb.New(time.Now()),
+		QuickRead:   isShort,
+		AuthorEmail: body.AuthorEmail,
 	})
 
 	if err != nil {

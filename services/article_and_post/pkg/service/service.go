@@ -59,17 +59,19 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 	req.ContentOwnerShip = pb.CreateArticleRequest_THE_USER
 
 	post := models.Article{
-		Id:         req.Id,
-		Title:      req.Title,
-		Content:    req.Content,
-		Author:     req.Author,
-		IsDraft:    &req.IsDraft,
-		Tags:       req.Tags,
-		CreateTime: req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		UpdateTime: req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		QuickRead:  req.QuickRead,
-		CanEdit:    &req.CanEdit,
-		OwnerShip:  pb.CreateArticleRequest_THE_USER,
+		Id:          req.Id,
+		Title:       req.Title,
+		Content:     req.Content,
+		Author:      req.Author,
+		AuthorEmail: req.AuthorEmail,
+		IsDraft:     &req.IsDraft,
+		Tags:        req.Tags,
+		CreateTime:  req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		UpdateTime:  req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		QuickRead:   req.QuickRead,
+		CanEdit:     &req.CanEdit,
+		OwnerShip:   pb.CreateArticleRequest_THE_USER,
+		FolderPath:  "",
 	}
 	bs, err := json.Marshal(post)
 	if err != nil {
