@@ -123,6 +123,7 @@ func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
 		Id:      id,
 		Title:   reqObj.Title,
 		Content: reqObj.Content,
+		Tags:    reqObj.Tags,
 		Method:  ctx.Request.Method,
 	})
 

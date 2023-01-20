@@ -25,7 +25,7 @@ func main() {
 			cfg.ArticleServerPort, err)
 	}
 
-	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword)
+	articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword, logrus.New())
 	articleServer.Log.SetReportCaller(true)
 	articleServer.Log.SetFormatter(&logrus.TextFormatter{
 		DisableColors: false,
