@@ -45,17 +45,21 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		req.Id = uuid.New().String()
 	}
 
-	// Lower cased tags
+	// Lower cased tags and trim spaces
 	for i, v := range req.Tags {
 		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
 	}
+
+	// Trim spaces from fields
 	req.Title = strings.TrimSpace(req.Title)
 	req.Author = strings.TrimSpace(req.Author)
 	req.Content = strings.TrimSpace(req.Content)
+	req.AuthorEmail = strings.TrimSpace(req.AuthorEmail)
 
 	req.CanEdit = true
 	req.ContentOwnerShip = pb.CreateArticleRequest_THE_USER
 
+	// Assign to models struct
 	post := models.Article{
 		Id:          req.Id,
 		Title:       req.Title,
@@ -71,40 +75,14 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 		OwnerShip:   pb.CreateArticleRequest_THE_USER,
 		FolderPath:  "",
 	}
+
+	// Create the articles
 	resp, err := srv.osClient.CreateAnArticle(post)
 	if err != nil {
 		srv.Log.Errorf("cannot save the post, error: %+v", err)
 	}
 
 	srv.Log.Infof("The status code for the save post is: %v", resp.StatusCode)
-	// bs, err := json.Marshal(post)
-	// if err != nil {
-	// 	logrus.Errorf("cannot marshal the request, error: %v", err)
-	// 	return nil, err
-	// }
-
-	// document := strings.NewReader(string(bs))
-
-	// osReq := opensearchapi.IndexRequest{
-	// 	Index:      utils.OpensearchArticleIndex,
-	// 	DocumentID: req.Id,
-	// 	Body:       document,
-	// }
-
-	// insertResponse, err := osReq.Do(context.Background(), srv.osClient.client)
-	// if err != nil {
-	// 	logrus.Errorf("cannot create a new document for user: %s, error: %v", req.GetAuthor(), err)
-	// 	return nil, err
-	// }
-
-	// if insertResponse.IsError() {
-	// 	logrus.Errorf("opensearch apt failed to create a new document for user: %s, error: %v",
-	// 		req.GetAuthor(), insertResponse.Status())
-	// 	return nil, err
-	// }
-
-	// logrus.Infof("successfully created an article for user: %s, insert response: %+v",
-	// 	req.Author, insertResponse)
 
 	return &pb.CreateArticleResponse{
 		Status: int64(resp.StatusCode),
@@ -112,26 +90,10 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 	}, nil
 }
 
+//
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
 	// Search for the document.
-	content := strings.NewReader(`
-	{
-		"size": 100,
-		"query": {
-			"match": {
-				"is_draft": "false"
-			}
-		},
-		"_source": {
-			"includes": [
-				"id",
-				"title",
-				"author",
-				"create_time",
-				"quick_read"
-			]
-		}
-	}`)
+	content := strings.NewReader(getLast100Articles())
 
 	search := opensearchapi.SearchRequest{
 		Index: []string{utils.OpensearchArticleIndex},
@@ -139,6 +101,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 	}
 
 	searchResponse, err := search.Do(context.Background(), srv.osClient.client)
+
 	if err != nil {
 		srv.Log.Errorf("failed to search document, error: %+v", err)
 		return status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
@@ -157,7 +120,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 		return err
 	}
 
-	arts := models.ArticlesForTheMainPage{}
+	arts := models.Last100Articles{}
 	if err := json.Unmarshal(bx, &arts); err != nil {
 		srv.Log.Errorf("cannot unmarshal byte slice, error: %+v", err)
 		return err
@@ -173,22 +136,18 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 	return nil
 }
 
-func ParseToStruct(result models.ArticlesForTheMainPage) []pb.GetArticlesResponse {
+func ParseToStruct(result models.Last100Articles) []pb.GetArticlesResponse {
 	var resp []pb.GetArticlesResponse
 
 	for _, val := range result.Hits.Hits {
-		t, err := time.Parse("2006-01-02T15:04:05Z", val.Source.CreateTime)
-		if err != nil {
-			logrus.Errorf("cannot parse the time, error: %v", err)
-		}
 
 		res := pb.GetArticlesResponse{
-			Id:         val.Source.ID,
-			Title:      val.Source.Title,
-			Author:     val.Source.Author,
-			CreateTime: timestamppb.New(t),
-			QuickRead:  val.Source.QuickRead,
-			// ViewBy:    instance.ViewedBy,
+			Id:          val.Source.ID,
+			Title:       val.Source.Title,
+			Author:      val.Source.Author,
+			AuthorEmail: val.Source.AuthorEmail,
+			CreateTime:  timestamppb.New(val.Source.CreateTime),
+			QuickRead:   val.Source.QuickRead,
 		}
 		resp = append(resp, res)
 	}
