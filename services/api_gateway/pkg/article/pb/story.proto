@@ -57,7 +57,7 @@ message GetArticleByIdResp {
   string content = 5;
   google.protobuf.Timestamp createTime = 6;
   bool quickRead = 7;
-  int64 noOfViews = 8;
+  repeated string Tags = 8;
 }
 
 message EditArticleReq {
@@ -65,6 +65,7 @@ message EditArticleReq {
   string title = 2;
   string content = 3;
   string method = 4;
+  repeated string Tags = 5;
 }
 
 message EditArticleRes {

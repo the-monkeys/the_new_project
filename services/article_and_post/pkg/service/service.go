@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -178,41 +177,34 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 	}
 
 	// Check if partial then fill a new struct
-	artToBeUpdated := PartialOrAllUpdate(req.GetMethod(), existingArticle, req)
-	logrus.Infof("Article to be updated: %+v", artToBeUpdated)
+	toBeUpdated := partialOrAllUpdate(req.GetMethod(), existingArticle, req)
+	logrus.Infof("Article to be updated: %+v", toBeUpdated.Id)
 
-	// Update query
-	updateQuery := fmt.Sprintf(`
-	
-	{
-		"query": {
-			"match": {
-				"id": "%s"
-			}
-		},
-		"script": {
-			"source": "ctx._source.title = params.title; ctx._source.content = params.content",
-			"lang": "painless",
-			"params": {
-				"title": "%s",
-				"content": "%s"
-			}
-		}
-	}`, artToBeUpdated.GetId(), artToBeUpdated.Title, artToBeUpdated.Content)
-	document := strings.NewReader(updateQuery)
+	document := strings.NewReader(updateArticleById(toBeUpdated.Id, toBeUpdated.Title, toBeUpdated.Content, toBeUpdated.Tags))
 
 	updateReq := opensearchapi.UpdateByQueryRequest{
 		Index: []string{utils.OpensearchArticleIndex},
 		Body:  document,
 	}
 
-	fmt.Println(updateQuery)
 	updateRes, err := updateReq.Do(ctx, srv.osClient.client)
 	if err != nil {
 		logrus.Errorf("failed to update the document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
 	}
-	logrus.Infof("Updateed: %+v", updateRes)
+
+	if updateRes.IsError() {
+		logrus.Errorf("cannot update the document, error: %+v", updateRes)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+
+	if updateRes.StatusCode == http.StatusBadRequest {
+		logrus.Errorf("cannot update the document, bad request, error: %+v", updateRes)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+
+	logrus.Infof("Updated the article %s", req.Id)
+
 	if updateRes.IsError() {
 		logrus.Errorf("failed to update the document, bad request, error: %+v", err)
 		return nil, status.Errorf(codes.InvalidArgument, "cannot update the document, error: %v", err)
@@ -220,6 +212,6 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 
 	return &pb.EditArticleRes{
 		Status: http.StatusCreated,
-		Id:     artToBeUpdated.Id,
+		Id:     toBeUpdated.Id,
 	}, nil
 }
