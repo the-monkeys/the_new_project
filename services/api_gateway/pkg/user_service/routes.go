@@ -42,7 +42,7 @@ func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
 
 	body := ProfileRequestBody{}
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
 

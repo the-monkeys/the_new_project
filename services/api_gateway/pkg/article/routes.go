@@ -39,8 +39,8 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 	body := CreateArticleRequestBody{}
 
 	if err := ctx.BindJSON(&body); err != nil {
-		logrus.Errorf("incomplete body, error", err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		logrus.Errorf("incomplete body, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (svc *ArticleServiceClient) CreateArticle(ctx *gin.Context) {
 
 	if err != nil {
 		logrus.Infof("cannot connect to article rpc server, error: %v", err)
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
 	stream, err := svc.Client.GetArticles(context.Background(), &pb.GetArticlesRequest{})
 	if err != nil {
 		logrus.Errorf("cannot connect to article stream rpc server, error: %v", err)
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (svc *ArticleServiceClient) GetArticles(ctx *gin.Context) {
 			logrus.Errorf("cannot get the stream data, error: %+v", err)
 		}
 
-		logrus.Info("Got response: %+v", resp)
+		logrus.Infof("Got response: %+v", resp)
 		response = append(response, resp)
 	}
 
@@ -101,7 +101,7 @@ func (svc *ArticleServiceClient) GetArticleById(ctx *gin.Context) {
 	res, err := svc.Client.GetArticleById(context.Background(), &pb.GetArticleByIdReq{Id: id})
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -114,8 +114,8 @@ func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
 	reqObj := EditArticleRequestBody{}
 
 	if err := ctx.BindJSON(&reqObj); err != nil {
-		logrus.Errorf("invalid body, error", err)
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		logrus.Errorf("invalid body, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
@@ -129,7 +129,7 @@ func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
 
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 

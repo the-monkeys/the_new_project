@@ -20,7 +20,7 @@ func (us *UserService) GetUserProfile(ctx context.Context, req *pb.GetUserProfil
 	err := us.DbClient.Psql.QueryRow("select id, first_name, last_name, email, profile_pic from users where id=$1;", req.GetId()).Scan(
 		&res.Id, &res.FirstName, &res.LastName, &res.Email, &res.ProfilePic)
 	if err != nil {
-		logrus.Infof("cannot get profile for user containing id: %v, error: ", req.GetId(), err)
+		logrus.Infof("cannot get profile for user containing id: %d, error: %v", req.GetId(), err)
 		return nil, errors.New("cannot get the profile")
 	}
 

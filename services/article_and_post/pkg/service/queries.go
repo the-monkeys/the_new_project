@@ -3,30 +3,9 @@ package service
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"time"
-)
 
-const (
-
-	// getArticlesByTags picks articles based on the tag name, latest first
-	getArticlesByTags = `{
-		"size": 100,
-		"query": {
-			"match": {
-				"is_draft": "false"
-			}
-		},
-		"_source": {
-			"includes": [
-				"id",
-				"title",
-				"author",
-				"create_time",
-				"quick_read"
-			]
-		}
-	}`
+	"github.com/sirupsen/logrus"
 )
 
 // getLast100Articles basically picks recent 100 published articles skipping the drafts
@@ -69,13 +48,14 @@ func getArticleById(id string) string {
 func updateArticleById(id, title, content string, tags []string) string {
 	bx, err := json.Marshal(tags)
 	if err != nil {
-
+		logrus.Errorf("cannot marshal tags, %v", err)
 	}
+
 	cont, err := json.Marshal(content)
 	if err != nil {
-
+		logrus.Errorf("cannot marshal content, %v", err)
 	}
-	ioutil.WriteFile("abc.json", bx, 777)
+
 	return fmt.Sprintf(`{
 			"query": {
 				"match": {

@@ -91,11 +91,17 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 //
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
 	searchResponse, err := srv.osClient.GetLast100Articles()
+	if err != nil {
+		srv.Log.Error("error while getting 100 articles, error", err)
+		return err
+	}
+
 	var result map[string]interface{}
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
-		srv.Log.Error("Error while decoding, error", err)
+		srv.Log.Error("error while decoding, error", err)
+		return err
 	}
 
 	bx, err := json.MarshalIndent(result, "", "    ")
@@ -111,8 +117,8 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 	}
 
 	articles := ParseToStruct(arts)
-	for _, article := range articles {
-		if err := stream.Send(&article); err != nil {
+	for _, art := range articles {
+		if err := stream.Send(&art); err != nil {
 			srv.Log.Errorf("error while sending stream, error %+v", err)
 		}
 	}

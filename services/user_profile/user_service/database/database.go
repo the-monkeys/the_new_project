@@ -24,7 +24,7 @@ func Init(url string) UserHandler {
 
 	dbPsql, err := sql.Open("postgres", url)
 	if err != nil {
-		logrus.Fatalln("cannot connect psql using sql driver, error:, %+v", err)
+		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)
 	}
 
 	if err = dbPsql.Ping(); err != nil {
@@ -32,7 +32,9 @@ func Init(url string) UserHandler {
 		return UserHandler{}
 	}
 
-	db.AutoMigrate(&models.UserServe{})
+	if err = db.AutoMigrate(&models.UserServe{}); err != nil {
+		logrus.Fatalf("cannot migrate user table, error:, %+v", err)
+	}
 
 	return UserHandler{GormConn: db, Psql: dbPsql}
 }

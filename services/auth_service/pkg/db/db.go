@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	_ "github.com/lib/pq"
@@ -18,9 +17,8 @@ type Handler struct {
 
 func Init(url string) Handler {
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
-
 	if err != nil {
-		log.Fatalln(err)
+		logrus.Fatalf("cannot open through gorm driver, error:, %+v", err)
 	}
 
 	if err = db.AutoMigrate(&models.User{}); err != nil {
@@ -32,7 +30,7 @@ func Init(url string) Handler {
 
 	dbPsql, err := sql.Open("postgres", url)
 	if err != nil {
-		logrus.Fatalln("cannot connect psql using sql driver, error:, %+v", err)
+		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)
 		return Handler{}
 	}
 
