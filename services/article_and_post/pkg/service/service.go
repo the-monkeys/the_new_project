@@ -92,21 +92,7 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 
 //
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
-	// Search for the document.
-	content := strings.NewReader(getLast100Articles())
-
-	search := opensearchapi.SearchRequest{
-		Index: []string{utils.OpensearchArticleIndex},
-		Body:  content,
-	}
-
-	searchResponse, err := search.Do(context.Background(), srv.osClient.client)
-
-	if err != nil {
-		srv.Log.Errorf("failed to search document, error: %+v", err)
-		return status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
-	}
-
+	searchResponse, err := srv.osClient.GetLast100Articles()
 	var result map[string]interface{}
 
 	decoder := json.NewDecoder(searchResponse.Body)
@@ -136,41 +122,9 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 	return nil
 }
 
-func ParseToStruct(result models.Last100Articles) []pb.GetArticlesResponse {
-	var resp []pb.GetArticlesResponse
-
-	for _, val := range result.Hits.Hits {
-
-		res := pb.GetArticlesResponse{
-			Id:          val.Source.ID,
-			Title:       val.Source.Title,
-			Author:      val.Source.Author,
-			AuthorEmail: val.Source.AuthorEmail,
-			CreateTime:  timestamppb.New(val.Source.CreateTime),
-			QuickRead:   val.Source.QuickRead,
-		}
-		resp = append(resp, res)
-	}
-
-	return resp
-}
-
 func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.GetArticleByIdResp, error) {
-	query := fmt.Sprintf(`{
-		"query": {
-			"match": {
-				"id": "%s"
-			}
-		}
-	}`, req.GetId())
-	content := strings.NewReader(query)
 
-	search := opensearchapi.SearchRequest{
-		Index: []string{utils.OpensearchArticleIndex},
-		Body:  content,
-	}
-
-	searchResponse, err := search.Do(ctx, srv.osClient.client)
+	searchResponse, err := srv.osClient.GetArticleById(ctx, req.GetId())
 	if err != nil {
 		logrus.Errorf("failed to find document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
@@ -197,14 +151,15 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	// tStamp, err := SplitSecondsAndNanos(art.Hits.Hits[0].Source.CreateTime)
 	if err != nil {
 		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
 	}
+
 	t, err := time.Parse("2006-01-02T15:04:05Z", art.Hits.Hits[0].Source.CreateTime)
 	if err != nil {
 		logrus.Errorf("cannot parse the time, error: %v", err)
 	}
+
 	return &pb.GetArticleByIdResp{
 		Id:         art.Hits.Hits[0].Source.ID,
 		Title:      art.Hits.Hits[0].Source.Title,
@@ -267,26 +222,4 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 		Status: http.StatusCreated,
 		Id:     artToBeUpdated.Id,
 	}, nil
-}
-
-func PartialOrAllUpdate(method string, existingArt *pb.GetArticleByIdResp, reqArt *pb.EditArticleReq) *pb.EditArticleReq {
-	procdArt := &pb.EditArticleReq{Id: reqArt.Id}
-
-	if method == http.MethodPatch {
-		if reqArt.Title == "" {
-			procdArt.Title = existingArt.Title
-		} else {
-			procdArt.Title = reqArt.Title
-		}
-		if reqArt.Content == "" {
-			procdArt.Content = existingArt.Content
-		} else {
-			procdArt.Content = reqArt.Content
-		}
-	} else {
-		procdArt.Title = reqArt.Title
-		procdArt.Content = reqArt.Content
-	}
-
-	return procdArt
 }

@@ -1,5 +1,7 @@
 package service
 
+import "fmt"
+
 const (
 
 	// getArticlesByTags picks articles based on the tag name, latest first
@@ -47,4 +49,14 @@ func getLast100Articles() string {
 			]
 		}
 	}`
+}
+
+func getArticleById(id string) string {
+	return fmt.Sprintf(`{
+		"query": {
+			"match": {
+				"id": "%s"
+			}
+		}
+	}`, id)
 }

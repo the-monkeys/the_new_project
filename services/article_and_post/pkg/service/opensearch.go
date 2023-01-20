@@ -69,3 +69,54 @@ func (oso *openSearchClient) CreateAnArticle(article models.Article) (*opensearc
 	oso.log.Infof("successfully created an article for user: %s, insert response: %+v", article.AuthorEmail, insertResponse)
 	return insertResponse, nil
 }
+
+// GetLast100Articles gets us last 100 articles created
+func (oso *openSearchClient) GetLast100Articles() (*opensearchapi.Response, error) {
+	oso.log.Infof("getting last 100 articles")
+
+	// Search for the document.
+	content := strings.NewReader(getLast100Articles())
+
+	search := opensearchapi.SearchRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(context.Background(), oso.client)
+	if err != nil {
+		oso.log.Errorf("failed to search document, error: %+v", err)
+		return nil, err
+	}
+
+	if searchResponse.IsError() {
+		oso.log.Errorf("error fetching 100 articles, search response: %+v", searchResponse)
+		return searchResponse, err
+	}
+
+	return searchResponse, nil
+}
+
+// GetArticleById gets us an articles matching the id
+func (oso *openSearchClient) GetArticleById(ctx context.Context, id string) (*opensearchapi.Response, error) {
+	oso.log.Infof("getting the article: %v", id)
+
+	content := strings.NewReader(getArticleById(id))
+
+	search := opensearchapi.SearchRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(ctx, oso.client)
+	if err != nil {
+		oso.log.Errorf("failed to find document, error: %+v", err)
+		return nil, err
+	}
+
+	if searchResponse.IsError() {
+		oso.log.Errorf("error fetching the article, %v, search response: %+v", id, searchResponse)
+		return searchResponse, err
+	}
+
+	return searchResponse, nil
+}
