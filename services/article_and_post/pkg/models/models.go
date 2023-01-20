@@ -86,17 +86,19 @@ type GetArticleById struct {
 			ID     string  `json:"_id"`
 			Score  float64 `json:"_score"`
 			Source struct {
-				ID               string   `json:"id"`
-				Title            string   `json:"title"`
-				Content          string   `json:"content"`
-				Author           string   `json:"author"`
-				IsDraft          bool     `json:"is_draft"`
-				Tags             []string `json:"tags"`
-				CreateTime       string   `json:"create_time"`
-				UpdateTime       string   `json:"update_time"`
-				QuickRead        bool     `json:"quick_read"`
-				CanEdit          bool     `json:"can_edit"`
-				ContentOwnership int      `json:"content_ownership"`
+				ID               string    `json:"id"`
+				Title            string    `json:"title"`
+				Content          string    `json:"content"`
+				Author           string    `json:"author"`
+				AuthorEmail      string    `json:"author_email"`
+				IsDraft          bool      `json:"is_draft"`
+				Tags             []string  `json:"tags"`
+				CreateTime       time.Time `json:"create_time"`
+				UpdateTime       time.Time `json:"update_time"`
+				QuickRead        bool      `json:"quick_read"`
+				CanEdit          bool      `json:"can_edit"`
+				ContentOwnership int       `json:"content_ownership"`
+				FolderPath       string    `json:"folder_path"`
 			} `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`

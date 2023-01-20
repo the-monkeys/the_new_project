@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
@@ -131,6 +130,8 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 
 	var result map[string]interface{}
 
+	// logrus.Infof("Response: %+v", searchResponse)
+
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
 		logrus.Error("error while decoding result, error", err)
@@ -154,21 +155,26 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
 	}
 
-	t, err := time.Parse("2006-01-02T15:04:05Z", art.Hits.Hits[0].Source.CreateTime)
-	if err != nil {
-		logrus.Errorf("cannot parse the time, error: %v", err)
-	}
-
 	return &pb.GetArticleByIdResp{
 		Id:         art.Hits.Hits[0].Source.ID,
 		Title:      art.Hits.Hits[0].Source.Title,
 		Author:     art.Hits.Hits[0].Source.Author,
 		Content:    art.Hits.Hits[0].Source.Content,
-		CreateTime: timestamppb.New(t),
+		CreateTime: timestamppb.New(art.Hits.Hits[0].Source.CreateTime),
+		Tags:       art.Hits.Hits[0].Source.Tags,
 	}, nil
 }
 
 func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleReq) (*pb.EditArticleRes, error) {
+	// Lower cased tags and trim spaces
+	for i, v := range req.Tags {
+		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
+	}
+
+	// Trim spaces from fields
+	req.Title = strings.TrimSpace(req.Title)
+	req.Content = strings.TrimSpace(req.Content)
+
 	// Get the document from opensearch
 	existingArticle, err := srv.GetArticleById(ctx, &pb.GetArticleByIdReq{Id: req.GetId()})
 	if err != nil {

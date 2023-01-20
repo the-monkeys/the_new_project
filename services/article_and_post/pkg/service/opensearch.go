@@ -120,19 +120,3 @@ func (oso *openSearchClient) GetArticleById(ctx context.Context, id string) (*op
 
 	return searchResponse, nil
 }
-
-// func (oso *openSearchClient) EditArticleById(ctx context.Context, req *pb.EditArticleReq) (*opensearchapi.Response, error) {
-// 	existingArticle, err := oso.GetArticleById(ctx, req.Id)
-// 	if err != nil {
-// 		oso.log.Errorf("cannot get the article %s, error: %+v", req.Id, err)
-// 		return nil, err
-// 	}
-
-// 	oso.log.Infof("yes, the article %s exists, updating it.", req.Id)
-
-// 	// Check if partial then fill a new struct
-// 	artToBeUpdated := PartialOrAllUpdate(req.GetMethod(), existingArticle, req)
-// 	logrus.Infof("Article to be updated: %+v", artToBeUpdated)
-
-// 	return searchResponse, nil
-// }

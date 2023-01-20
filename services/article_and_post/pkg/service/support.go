@@ -1,7 +1,6 @@
 package service
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
@@ -30,8 +29,6 @@ func ParseToStruct(result models.Last100Articles) []pb.GetArticlesResponse {
 
 func partialOrAllUpdate(method string, existingArt *pb.GetArticleByIdResp, reqArt *pb.EditArticleReq) *pb.EditArticleReq {
 	procdArt := &pb.EditArticleReq{Id: reqArt.Id}
-	log.Printf("existingArt tags: %+v", existingArt)
-	log.Println("Requested tags: ", reqArt.Tags)
 
 	if method == http.MethodPatch {
 		if reqArt.Title == "" {
@@ -54,7 +51,6 @@ func partialOrAllUpdate(method string, existingArt *pb.GetArticleByIdResp, reqAr
 		procdArt.Content = reqArt.Content
 		procdArt.Tags = reqArt.Tags
 	}
-	log.Println("TobeUPdated tags: ", procdArt.Tags)
 
 	return procdArt
 }
