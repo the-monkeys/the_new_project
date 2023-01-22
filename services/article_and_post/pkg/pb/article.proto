@@ -91,11 +91,18 @@ message CreateCommentRes {
   string error = 3;
 }
 
+message DeleteArticleByIdRes {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
 service ArticleService {
   rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {}
   rpc GetArticles (GetArticlesRequest) returns (stream GetArticlesResponse){};
   rpc GetArticleById (GetArticleByIdReq) returns (GetArticleByIdResp){};
   rpc EditArticle (EditArticleReq) returns ( EditArticleRes){};
-
+  rpc DeleteArticleById (GetArticleByIdReq) returns (DeleteArticleByIdRes){};
+  
   rpc CreateComment(CreateCommentReq) returns (CreateCommentRes){};
 }
