@@ -121,6 +121,8 @@ func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostS
 }
 
 func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdRequest) (*pb.GetBlogByIdResponse, error) {
+	blog.logger.Infof("the blog %v has been requested", req.GetId())
+
 	searchResponse, err := blog.osClient.GetArticleById(ctx, req.GetId())
 	if err != nil {
 		blog.logger.Errorf("failed to find document, error: %+v", err)
@@ -129,7 +131,7 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 
 	var result map[string]interface{}
 
-	logrus.Infof("Response: %+v", searchResponse.StatusCode)
+	// logrus.Infof("Response: %+v", searchResponse)
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
@@ -138,7 +140,6 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 	}
 
 	bx, err := json.MarshalIndent(result, "", "    ")
-
 	if err != nil {
 		blog.logger.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot marshal opensearch response: %v", err)
@@ -150,7 +151,11 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	logrus.Infof("Times: %+v", art.Hits.Hits[0].Source.CreateTime)
+	if len(art.Hits.Hits) == 0 {
+		blog.logger.Errorf("cannot find the blog : %v", req.GetId())
+		return nil, status.Errorf(codes.NotFound, "cannot find the document")
+	}
+
 	return &pb.GetBlogByIdResponse{
 		Id:         art.Hits.Hits[0].Source.ID,
 		Title:      art.Hits.Hits[0].Source.Title,
@@ -163,6 +168,8 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 }
 
 func (blog *BlogService) EditBlogById(ctx context.Context, req *pb.EditBlogRequest) (*pb.EditBlogResponse, error) {
+	blog.logger.Info("the user has requested to edit the post %v", req.GetId())
+
 	// Lower cased tags and trim spaces
 	for i, v := range req.Tags {
 		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
@@ -221,6 +228,7 @@ func (blog *BlogService) EditBlogById(ctx context.Context, req *pb.EditBlogReque
 
 func (blog *BlogService) DeleteBlogById(ctx context.Context, req *pb.DeleteBlogByIdRequest) (*pb.DeleteBlogByIdResponse, error) {
 	blog.logger.Infof("user has requested to delete blog %v", req.Id)
+
 	delete := opensearchapi.DeleteRequest{
 		Index:      utils.OpensearchArticleIndex,
 		DocumentID: req.Id,
