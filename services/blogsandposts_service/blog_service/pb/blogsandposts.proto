@@ -59,8 +59,23 @@ message GetBlogByIdResponse {
   repeated string Tags = 7;
 }
 
+message EditBlogRequest {
+  string Id = 1;
+  string title = 2;
+  string content = 3;
+  repeated string Tags = 5;
+  bool isPartial = 4;
+}
+
+message EditBlogResponse {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
 service BlogsAndPostService {
     rpc CreateABlog(CreateBlogRequest) returns (CreateBlogResponse) {};
     rpc Get100Blogs(google.protobuf.Empty) returns (stream GetBlogsResponse) {};
     rpc GetBlogById(GetBlogByIdRequest) returns (GetBlogByIdResponse){};
+    rpc EditBlogById(EditBlogRequest) returns (EditBlogResponse){};
 }

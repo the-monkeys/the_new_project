@@ -41,6 +41,8 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.Use(mware.AuthRequired)
 
 	routes.POST("/create", blogCli.CreateABlog)
+	routes.PUT("/edit/:id", blogCli.EditArticles)
+	routes.PATCH("/edit/:id", blogCli.EditArticles)
 
 	return blogCli
 }
@@ -104,6 +106,38 @@ func (svc *BlogServiceClient) GetArticleById(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	res, err := svc.Client.GetBlogById(context.Background(), &pb.GetBlogByIdRequest{Id: id})
+	if err != nil {
+		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func (blog *BlogServiceClient) EditArticles(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	reqObj := EditArticleRequestBody{}
+
+	if err := ctx.BindJSON(&reqObj); err != nil {
+		logrus.Errorf("invalid body, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	var isPartial bool
+	if ctx.Request.Method == http.MethodPatch {
+		isPartial = true
+	}
+
+	res, err := blog.Client.EditBlogById(context.Background(), &pb.EditBlogRequest{
+		Id:        id,
+		Title:     reqObj.Title,
+		Content:   reqObj.Content,
+		Tags:      reqObj.Tags,
+		IsPartial: isPartial,
+	})
+
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)

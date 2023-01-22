@@ -9,6 +9,8 @@ import (
 	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
+	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/utils"
+	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -118,7 +120,6 @@ func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostS
 }
 
 func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdRequest) (*pb.GetBlogByIdResponse, error) {
-
 	searchResponse, err := blog.osClient.GetArticleById(ctx, req.GetId())
 	if err != nil {
 		blog.logger.Errorf("failed to find document, error: %+v", err)
@@ -127,7 +128,7 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 
 	var result map[string]interface{}
 
-	// logrus.Infof("Response: %+v", searchResponse)
+	logrus.Infof("Response: %+v", searchResponse.StatusCode)
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
@@ -148,9 +149,6 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	if err != nil {
-		blog.logger.Errorf("cannot parse string timestamp to timestamp, error %v", err)
-	}
 	logrus.Infof("Times: %+v", art.Hits.Hits[0].Source.CreateTime)
 	return &pb.GetBlogByIdResponse{
 		Id:         art.Hits.Hits[0].Source.ID,
@@ -160,5 +158,62 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		Content:    art.Hits.Hits[0].Source.Content,
 		CreateTime: timestamppb.New(art.Hits.Hits[0].Source.CreateTime),
 		Tags:       art.Hits.Hits[0].Source.Tags,
+	}, nil
+}
+
+func (blog *BlogService) EditBlogById(ctx context.Context, req *pb.EditBlogRequest) (*pb.EditBlogResponse, error) {
+	// Lower cased tags and trim spaces
+	for i, v := range req.Tags {
+		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
+	}
+
+	// Trim spaces from fields
+	req.Title = strings.TrimSpace(req.Title)
+	req.Content = strings.TrimSpace(req.Content)
+
+	// Get the document from opensearch
+	existingArticle, err := blog.GetBlogById(ctx, &pb.GetBlogByIdRequest{Id: req.GetId()})
+	if err != nil {
+		blog.logger.Errorf("cannot get the existing article, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot get the existing article, error: %v", err)
+	}
+
+	// Check if partial then fill a new struct
+	toBeUpdated := partialOrAllUpdate(req.IsPartial, existingArticle, req)
+	logrus.Infof("Article to be updated: %+v", toBeUpdated.Id)
+
+	document := strings.NewReader(updateArticleById(toBeUpdated.Id, toBeUpdated.Title, toBeUpdated.Content, toBeUpdated.Tags))
+
+	updateReq := opensearchapi.UpdateByQueryRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  document,
+	}
+
+	updateRes, err := updateReq.Do(ctx, blog.osClient.client)
+	if err != nil {
+		blog.logger.Errorf("failed to update the document, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+
+	if updateRes.IsError() {
+		blog.logger.Errorf("cannot update the document, error: %+v", updateRes)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+
+	if updateRes.StatusCode == http.StatusBadRequest {
+		blog.logger.Errorf("cannot update the document, bad request, error: %+v", updateRes)
+		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
+	}
+
+	logrus.Infof("Updated the article %s", req.Id)
+
+	if updateRes.IsError() {
+		blog.logger.Errorf("failed to update the document, bad request, error: %+v", err)
+		return nil, status.Errorf(codes.InvalidArgument, "cannot update the document, error: %v", err)
+	}
+
+	return &pb.EditBlogResponse{
+		Status: http.StatusCreated,
+		Id:     toBeUpdated.Id,
 	}, nil
 }
