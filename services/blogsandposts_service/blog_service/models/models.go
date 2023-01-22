@@ -6,20 +6,19 @@ import (
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 )
 
-type Article struct {
-	Id          string                                `json:"id"`
-	Title       string                                `json:"title"`
-	Content     string                                `json:"content"`
-	Author      string                                `json:"author"`
-	AuthorEmail string                                `json:"author_email"`
-	IsDraft     *bool                                 `json:"is_draft"`
-	Tags        []string                              `json:"tags"`
-	CreateTime  string                                `json:"create_time"`
-	UpdateTime  string                                `json:"update_time"`
-	QuickRead   bool                                  `json:"quick_read"`
-	CanEdit     *bool                                 `json:"can_edit"`
-	OwnerShip   pb.CreateBlogRequest_ContentOwnerShip `json:"content_ownership"`
-	FolderPath  string                                `json:"folder_path"`
+type Blogs struct {
+	Id          string                     `json:"id"`
+	Title       string                     `json:"title"`
+	Content     string                     `json:"content"`
+	Author      string                     `json:"author"`
+	AuthorEmail string                     `json:"author_email"`
+	Published   *bool                      `json:"is_draft"`
+	Tags        []string                   `json:"tags"`
+	CreateTime  string                     `json:"create_time"`
+	UpdateTime  string                     `json:"update_time"`
+	CanEdit     *bool                      `json:"can_edit"`
+	OwnerShip   pb.CreateBlogReq_Ownership `json:"content_ownership"`
+	FolderPath  string                     `json:"folder_path"`
 }
 
 type GetArticleResp struct {

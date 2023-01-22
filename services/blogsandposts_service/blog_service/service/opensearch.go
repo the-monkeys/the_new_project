@@ -18,7 +18,7 @@ type openSearchClient struct {
 	log    *logrus.Logger
 }
 
-func newOpenSearchClient(url, username, password string, log *logrus.Logger) (*openSearchClient, error) {
+func NewOpenSearchClient(url, username, password string, log *logrus.Logger) (*openSearchClient, error) {
 	client, err := database.NewOSClient(url, username, password)
 	if err != nil {
 		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
@@ -38,7 +38,7 @@ func (oso *openSearchClient) MapArticleIndex(mapping string) error {
 }
 
 // CreateAnArticle creates a document for an article posted by a user
-func (oso *openSearchClient) CreateAnArticle(article models.Article) (*opensearchapi.Response, error) {
+func (oso *openSearchClient) CreateAnArticle(article models.Blogs) (*opensearchapi.Response, error) {
 	oso.log.Infof("received an article with id: %s", article.Id)
 
 	bs, err := json.Marshal(article)

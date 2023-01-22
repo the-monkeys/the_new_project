@@ -28,7 +28,7 @@ func main() {
 
 	article.RegisterArticleRoutes(router, &cfg, authClient)
 	user_service.RegisterUserRouter(router, &cfg, authClient)
-	blogsandposts.RegisterBlogsAndPostsRoutes(router, &cfg, authClient)
+	blogsandposts.RegisterBlogRouter(router, &cfg, authClient)
 
 	logrus.Info("starting the gateway server at port: ", cfg.Port)
 	if err = router.Run(cfg.Port); err != nil {

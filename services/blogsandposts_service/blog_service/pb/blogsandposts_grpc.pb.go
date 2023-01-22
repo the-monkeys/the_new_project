@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.15.8
-// source: services/api_gateway/pkg/blogsandposts/pb/blogsandposts.proto
+// source: services/blogsandposts_service/blog_service/pb/blogsandposts.proto
 
 package pb
 
@@ -101,5 +101,5 @@ var BlogsAndPostService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "services/api_gateway/pkg/blogsandposts/pb/blogsandposts.proto",
+	Metadata: "services/blogsandposts_service/blog_service/pb/blogsandposts.proto",
 }

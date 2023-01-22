@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./services/api_gateway/pkg/blogsandposts/pb";
+option go_package = "./services/blogsandposts_service/blog_service/pb";
 import "google/protobuf/timestamp.proto";
 
 message CreateBlogReq {
