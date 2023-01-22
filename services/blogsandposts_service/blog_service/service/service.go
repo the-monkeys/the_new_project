@@ -18,9 +18,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// TODO:
+// TODO: The following
 // Create blog time is not correct
 // Get blog time is not showing correct
+// Get blog by id is throwing error if the blog doesn't exist
 
 type BlogService struct {
 	osClient openSearchClient
