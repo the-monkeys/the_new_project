@@ -24,10 +24,9 @@ func NewBlogService(client openSearchClient,
 	return &BlogService{osClient: client, logger: logger}
 }
 
-func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq) (*pb.CreateBlogRes, error) {
+func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequest) (*pb.CreateBlogResponse, error) {
 	blog.logger.Infof("received a create blog request from user: %v", req.AuthorId)
 
-	var article models.Blogs
 	// Lower cased tags and trim spaces
 	for i, v := range req.Tags {
 		req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
@@ -40,7 +39,7 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq)
 	req.AuthorId = strings.TrimSpace(req.AuthorId)
 
 	req.CanEdit = true
-	req.Ownership = pb.CreateBlogReq_THE_USER
+	req.Ownership = pb.CreateBlogRequest_THE_USER
 
 	// Assign to models struct
 	post := models.Blogs{
@@ -72,9 +71,9 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq)
 
 	blog.logger.Infof("user %v created a blog successfully: %v", req.GetAuthorId(), req.GetId())
 
-	return &pb.CreateBlogRes{
-		Message: "Successfully created",
-		Id:      article.Id,
+	return &pb.CreateBlogResponse{
+		Status: int64(resp.StatusCode),
+		Id:     int64(resp.StatusCode),
 	}, nil
 }
 

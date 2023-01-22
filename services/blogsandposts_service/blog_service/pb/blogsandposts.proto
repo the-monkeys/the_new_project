@@ -6,7 +6,7 @@ option go_package = "./services/blogsandposts_service/blog_service/pb";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-message CreateBlogReq {
+message CreateBlogRequest {
   string id = 1;
   string title = 2;
   string content = 3;
@@ -28,13 +28,15 @@ message CreateBlogReq {
   
 }
 
-message CreateBlogRes {
-    string id = 1;
-    string error = 2;
-    string message = 3;
+message CreateBlogResponse {
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
 }
 
-message GetArticleResp {
+message GetBlogsRequest{}
+
+message GetBlogsResponse {
   string id = 1;
   string title = 2;
   string authorName = 3;
@@ -44,6 +46,6 @@ message GetArticleResp {
 }
 
 service BlogsAndPostService {
-    rpc CreateABlog(CreateBlogReq) returns (CreateBlogRes) {};
-    rpc Get100Blogs(google.protobuf.Empty) returns (stream GetArticleResp) {};
+    rpc CreateABlog(CreateBlogRequest) returns (CreateBlogResponse) {};
+    rpc Get100Blogs(google.protobuf.Empty) returns (stream GetBlogsResponse) {};
 }

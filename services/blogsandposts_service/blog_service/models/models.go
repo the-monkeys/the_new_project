@@ -7,18 +7,18 @@ import (
 )
 
 type Blogs struct {
-	Id          string                     `json:"id"`
-	Title       string                     `json:"title"`
-	Content     string                     `json:"content"`
-	Author      string                     `json:"author_name"`
-	AuthorEmail string                     `json:"author_id"`
-	Published   *bool                      `json:"published"`
-	Tags        []string                   `json:"tags"`
-	CreateTime  string                     `json:"create_time"`
-	UpdateTime  string                     `json:"update_time"`
-	CanEdit     *bool                      `json:"can_edit"`
-	OwnerShip   pb.CreateBlogReq_Ownership `json:"content_ownership"`
-	FolderPath  string                     `json:"folder_path"`
+	Id          string                         `json:"id"`
+	Title       string                         `json:"title"`
+	Content     string                         `json:"content"`
+	Author      string                         `json:"author_name"`
+	AuthorEmail string                         `json:"author_id"`
+	Published   *bool                          `json:"published"`
+	Tags        []string                       `json:"tags"`
+	CreateTime  string                         `json:"create_time"`
+	UpdateTime  string                         `json:"update_time"`
+	CanEdit     *bool                          `json:"can_edit"`
+	OwnerShip   pb.CreateBlogRequest_Ownership `json:"content_ownership"`
+	FolderPath  string                         `json:"folder_path"`
 }
 
 type GetArticleResp struct {

@@ -2,6 +2,7 @@ package blogsandposts
 
 import (
 	"context"
+	"io"
 	"net/http"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
@@ -52,7 +53,7 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 		return
 	}
 
-	res, err := asc.Client.CreateABlog(context.Background(), &pb.CreateBlogReq{
+	res, err := asc.Client.CreateABlog(context.Background(), &pb.CreateBlogRequest{
 		Id:         uuid.NewString(),
 		Title:      body.Title,
 		Content:    body.Content,
@@ -71,14 +72,29 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 
 }
 
-func (asc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
+func (svc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
+	logrus.Infof("the page is visited from ip: %s", "192.168.0.3")
 
-	res, err := asc.Client.Get100Blogs(context.Background(), &emptypb.Empty{})
+	stream, err := svc.Client.Get100Blogs(context.Background(), &emptypb.Empty{})
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadGateway, err)
+		logrus.Errorf("cannot connect to article stream rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
 		return
-
 	}
-	logrus.Errorf("Response: %+v", res)
-	ctx.JSON(http.StatusAccepted, &res)
+
+	response := []*pb.GetBlogsResponse{}
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logrus.Errorf("cannot get the stream data, error: %+v", err)
+		}
+
+		logrus.Infof("Got response: %+v", resp)
+		response = append(response, resp)
+	}
+
+	ctx.JSON(http.StatusCreated, response)
 }

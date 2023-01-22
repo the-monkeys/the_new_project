@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BlogsAndPostServiceClient interface {
-	CreateABlog(ctx context.Context, in *CreateBlogReq, opts ...grpc.CallOption) (*CreateBlogRes, error)
+	CreateABlog(ctx context.Context, in *CreateBlogRequest, opts ...grpc.CallOption) (*CreateBlogResponse, error)
 	Get100Blogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (BlogsAndPostService_Get100BlogsClient, error)
 }
 
@@ -35,8 +35,8 @@ func NewBlogsAndPostServiceClient(cc grpc.ClientConnInterface) BlogsAndPostServi
 	return &blogsAndPostServiceClient{cc}
 }
 
-func (c *blogsAndPostServiceClient) CreateABlog(ctx context.Context, in *CreateBlogReq, opts ...grpc.CallOption) (*CreateBlogRes, error) {
-	out := new(CreateBlogRes)
+func (c *blogsAndPostServiceClient) CreateABlog(ctx context.Context, in *CreateBlogRequest, opts ...grpc.CallOption) (*CreateBlogResponse, error) {
+	out := new(CreateBlogResponse)
 	err := c.cc.Invoke(ctx, "/auth.BlogsAndPostService/CreateABlog", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (c *blogsAndPostServiceClient) Get100Blogs(ctx context.Context, in *emptypb
 }
 
 type BlogsAndPostService_Get100BlogsClient interface {
-	Recv() (*GetArticleResp, error)
+	Recv() (*GetBlogsResponse, error)
 	grpc.ClientStream
 }
 
@@ -68,8 +68,8 @@ type blogsAndPostServiceGet100BlogsClient struct {
 	grpc.ClientStream
 }
 
-func (x *blogsAndPostServiceGet100BlogsClient) Recv() (*GetArticleResp, error) {
-	m := new(GetArticleResp)
+func (x *blogsAndPostServiceGet100BlogsClient) Recv() (*GetBlogsResponse, error) {
+	m := new(GetBlogsResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (x *blogsAndPostServiceGet100BlogsClient) Recv() (*GetArticleResp, error) {
 // All implementations must embed UnimplementedBlogsAndPostServiceServer
 // for forward compatibility
 type BlogsAndPostServiceServer interface {
-	CreateABlog(context.Context, *CreateBlogReq) (*CreateBlogRes, error)
+	CreateABlog(context.Context, *CreateBlogRequest) (*CreateBlogResponse, error)
 	Get100Blogs(*emptypb.Empty, BlogsAndPostService_Get100BlogsServer) error
 	mustEmbedUnimplementedBlogsAndPostServiceServer()
 }
@@ -89,7 +89,7 @@ type BlogsAndPostServiceServer interface {
 type UnimplementedBlogsAndPostServiceServer struct {
 }
 
-func (UnimplementedBlogsAndPostServiceServer) CreateABlog(context.Context, *CreateBlogReq) (*CreateBlogRes, error) {
+func (UnimplementedBlogsAndPostServiceServer) CreateABlog(context.Context, *CreateBlogRequest) (*CreateBlogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateABlog not implemented")
 }
 func (UnimplementedBlogsAndPostServiceServer) Get100Blogs(*emptypb.Empty, BlogsAndPostService_Get100BlogsServer) error {
@@ -109,7 +109,7 @@ func RegisterBlogsAndPostServiceServer(s grpc.ServiceRegistrar, srv BlogsAndPost
 }
 
 func _BlogsAndPostService_CreateABlog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateBlogReq)
+	in := new(CreateBlogRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func _BlogsAndPostService_CreateABlog_Handler(srv interface{}, ctx context.Conte
 		FullMethod: "/auth.BlogsAndPostService/CreateABlog",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BlogsAndPostServiceServer).CreateABlog(ctx, req.(*CreateBlogReq))
+		return srv.(BlogsAndPostServiceServer).CreateABlog(ctx, req.(*CreateBlogRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -135,7 +135,7 @@ func _BlogsAndPostService_Get100Blogs_Handler(srv interface{}, stream grpc.Serve
 }
 
 type BlogsAndPostService_Get100BlogsServer interface {
-	Send(*GetArticleResp) error
+	Send(*GetBlogsResponse) error
 	grpc.ServerStream
 }
 
@@ -143,7 +143,7 @@ type blogsAndPostServiceGet100BlogsServer struct {
 	grpc.ServerStream
 }
 
-func (x *blogsAndPostServiceGet100BlogsServer) Send(m *GetArticleResp) error {
+func (x *blogsAndPostServiceGet100BlogsServer) Send(m *GetBlogsResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 

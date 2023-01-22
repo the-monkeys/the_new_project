@@ -6,13 +6,13 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func parseToStruct(result models.Last100Articles) []pb.GetArticleResp {
-	var resp []pb.GetArticleResp
+func parseToStruct(result models.Last100Articles) []pb.GetBlogsResponse {
+	var resp []pb.GetBlogsResponse
 
 	for _, val := range result.Hits.Hits {
 
 		// Add content here
-		res := pb.GetArticleResp{
+		res := pb.GetBlogsResponse{
 			Id:         val.Source.ID,
 			Title:      val.Source.Title,
 			AuthorName: val.Source.AuthorName,
