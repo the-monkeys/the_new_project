@@ -73,9 +73,20 @@ message EditBlogResponse {
   string id = 3;
 }
 
+message DeleteBlogByIdRequest {
+  string Id = 1;
+}
+
+message DeleteBlogByIdResponse {
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
+}
+
 service BlogsAndPostService {
     rpc CreateABlog(CreateBlogRequest) returns (CreateBlogResponse) {};
     rpc Get100Blogs(google.protobuf.Empty) returns (stream GetBlogsResponse) {};
     rpc GetBlogById(GetBlogByIdRequest) returns (GetBlogByIdResponse){};
     rpc EditBlogById(EditBlogRequest) returns (EditBlogResponse){};
+    rpc DeleteBlogById(DeleteBlogByIdRequest) returns (DeleteBlogByIdResponse){};
 }

@@ -218,3 +218,24 @@ func (blog *BlogService) EditBlogById(ctx context.Context, req *pb.EditBlogReque
 		Id:     toBeUpdated.Id,
 	}, nil
 }
+
+func (blog *BlogService) DeleteBlogById(ctx context.Context, req *pb.DeleteBlogByIdRequest) (*pb.DeleteBlogByIdResponse, error) {
+	blog.logger.Infof("user has requested to delete blog %v", req.Id)
+	delete := opensearchapi.DeleteRequest{
+		Index:      utils.OpensearchArticleIndex,
+		DocumentID: req.Id,
+	}
+
+	deleteResponse, err := delete.Do(context.Background(), blog.osClient.client)
+	if err != nil {
+		blog.logger.Error("cannot delete the blog %s, error: %v", req.Id, err)
+		return nil, err
+	}
+
+	if deleteResponse.StatusCode == http.StatusNotFound {
+		blog.logger.Error("cannot find the blog %s, error: %v", req.Id, err)
+		return nil, err
+	}
+
+	return &pb.DeleteBlogByIdResponse{Status: int64(deleteResponse.StatusCode)}, nil
+}

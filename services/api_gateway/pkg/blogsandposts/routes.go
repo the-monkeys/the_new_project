@@ -43,6 +43,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.POST("/create", blogCli.CreateABlog)
 	routes.PUT("/edit/:id", blogCli.EditArticles)
 	routes.PATCH("/edit/:id", blogCli.EditArticles)
+	routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
 
 	return blogCli
 }
@@ -138,6 +139,19 @@ func (blog *BlogServiceClient) EditArticles(ctx *gin.Context) {
 		IsPartial: isPartial,
 	})
 
+	if err != nil {
+		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func (svc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	res, err := svc.Client.DeleteBlogById(context.Background(), &pb.DeleteBlogByIdRequest{Id: id})
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)

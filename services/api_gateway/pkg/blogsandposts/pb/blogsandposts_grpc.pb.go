@@ -27,6 +27,7 @@ type BlogsAndPostServiceClient interface {
 	Get100Blogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (BlogsAndPostService_Get100BlogsClient, error)
 	GetBlogById(ctx context.Context, in *GetBlogByIdRequest, opts ...grpc.CallOption) (*GetBlogByIdResponse, error)
 	EditBlogById(ctx context.Context, in *EditBlogRequest, opts ...grpc.CallOption) (*EditBlogResponse, error)
+	DeleteBlogById(ctx context.Context, in *DeleteBlogByIdRequest, opts ...grpc.CallOption) (*DeleteBlogByIdResponse, error)
 }
 
 type blogsAndPostServiceClient struct {
@@ -96,6 +97,15 @@ func (c *blogsAndPostServiceClient) EditBlogById(ctx context.Context, in *EditBl
 	return out, nil
 }
 
+func (c *blogsAndPostServiceClient) DeleteBlogById(ctx context.Context, in *DeleteBlogByIdRequest, opts ...grpc.CallOption) (*DeleteBlogByIdResponse, error) {
+	out := new(DeleteBlogByIdResponse)
+	err := c.cc.Invoke(ctx, "/auth.BlogsAndPostService/DeleteBlogById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogsAndPostServiceServer is the server API for BlogsAndPostService service.
 // All implementations must embed UnimplementedBlogsAndPostServiceServer
 // for forward compatibility
@@ -104,6 +114,7 @@ type BlogsAndPostServiceServer interface {
 	Get100Blogs(*emptypb.Empty, BlogsAndPostService_Get100BlogsServer) error
 	GetBlogById(context.Context, *GetBlogByIdRequest) (*GetBlogByIdResponse, error)
 	EditBlogById(context.Context, *EditBlogRequest) (*EditBlogResponse, error)
+	DeleteBlogById(context.Context, *DeleteBlogByIdRequest) (*DeleteBlogByIdResponse, error)
 	mustEmbedUnimplementedBlogsAndPostServiceServer()
 }
 
@@ -122,6 +133,9 @@ func (UnimplementedBlogsAndPostServiceServer) GetBlogById(context.Context, *GetB
 }
 func (UnimplementedBlogsAndPostServiceServer) EditBlogById(context.Context, *EditBlogRequest) (*EditBlogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditBlogById not implemented")
+}
+func (UnimplementedBlogsAndPostServiceServer) DeleteBlogById(context.Context, *DeleteBlogByIdRequest) (*DeleteBlogByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlogById not implemented")
 }
 func (UnimplementedBlogsAndPostServiceServer) mustEmbedUnimplementedBlogsAndPostServiceServer() {}
 
@@ -211,6 +225,24 @@ func _BlogsAndPostService_EditBlogById_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogsAndPostService_DeleteBlogById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBlogByIdRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogsAndPostServiceServer).DeleteBlogById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.BlogsAndPostService/DeleteBlogById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogsAndPostServiceServer).DeleteBlogById(ctx, req.(*DeleteBlogByIdRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogsAndPostService_ServiceDesc is the grpc.ServiceDesc for BlogsAndPostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,6 +261,10 @@ var BlogsAndPostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EditBlogById",
 			Handler:    _BlogsAndPostService_EditBlogById_Handler,
+		},
+		{
+			MethodName: "DeleteBlogById",
+			Handler:    _BlogsAndPostService_DeleteBlogById_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
