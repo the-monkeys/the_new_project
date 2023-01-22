@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BlogsAndPostServiceClient interface {
 	CreateABlog(ctx context.Context, in *CreateBlogReq, opts ...grpc.CallOption) (*CreateBlogRes, error)
+	Get100Blogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (BlogsAndPostService_Get100BlogsClient, error)
 }
 
 type blogsAndPostServiceClient struct {
@@ -42,11 +44,44 @@ func (c *blogsAndPostServiceClient) CreateABlog(ctx context.Context, in *CreateB
 	return out, nil
 }
 
+func (c *blogsAndPostServiceClient) Get100Blogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (BlogsAndPostService_Get100BlogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &BlogsAndPostService_ServiceDesc.Streams[0], "/auth.BlogsAndPostService/Get100Blogs", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &blogsAndPostServiceGet100BlogsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type BlogsAndPostService_Get100BlogsClient interface {
+	Recv() (*GetArticleResp, error)
+	grpc.ClientStream
+}
+
+type blogsAndPostServiceGet100BlogsClient struct {
+	grpc.ClientStream
+}
+
+func (x *blogsAndPostServiceGet100BlogsClient) Recv() (*GetArticleResp, error) {
+	m := new(GetArticleResp)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // BlogsAndPostServiceServer is the server API for BlogsAndPostService service.
 // All implementations must embed UnimplementedBlogsAndPostServiceServer
 // for forward compatibility
 type BlogsAndPostServiceServer interface {
 	CreateABlog(context.Context, *CreateBlogReq) (*CreateBlogRes, error)
+	Get100Blogs(*emptypb.Empty, BlogsAndPostService_Get100BlogsServer) error
 	mustEmbedUnimplementedBlogsAndPostServiceServer()
 }
 
@@ -56,6 +91,9 @@ type UnimplementedBlogsAndPostServiceServer struct {
 
 func (UnimplementedBlogsAndPostServiceServer) CreateABlog(context.Context, *CreateBlogReq) (*CreateBlogRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateABlog not implemented")
+}
+func (UnimplementedBlogsAndPostServiceServer) Get100Blogs(*emptypb.Empty, BlogsAndPostService_Get100BlogsServer) error {
+	return status.Errorf(codes.Unimplemented, "method Get100Blogs not implemented")
 }
 func (UnimplementedBlogsAndPostServiceServer) mustEmbedUnimplementedBlogsAndPostServiceServer() {}
 
@@ -88,6 +126,27 @@ func _BlogsAndPostService_CreateABlog_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogsAndPostService_Get100Blogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(BlogsAndPostServiceServer).Get100Blogs(m, &blogsAndPostServiceGet100BlogsServer{stream})
+}
+
+type BlogsAndPostService_Get100BlogsServer interface {
+	Send(*GetArticleResp) error
+	grpc.ServerStream
+}
+
+type blogsAndPostServiceGet100BlogsServer struct {
+	grpc.ServerStream
+}
+
+func (x *blogsAndPostServiceGet100BlogsServer) Send(m *GetArticleResp) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // BlogsAndPostService_ServiceDesc is the grpc.ServiceDesc for BlogsAndPostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +159,12 @@ var BlogsAndPostService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BlogsAndPostService_CreateABlog_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Get100Blogs",
+			Handler:       _BlogsAndPostService_Get100Blogs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "services/api_gateway/pkg/blogsandposts/pb/blogsandposts.proto",
 }

@@ -1,23 +1,29 @@
 package service
 
-// func ParseToStruct(result models.Last100Articles) []pb.GetBlogsResponse {
-// 	var resp []pb.GetBlogsResponse
+import (
+	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
+	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+)
 
-// 	for _, val := range result.Hits.Hits {
+func parseToStruct(result models.Last100Articles) []pb.GetArticleResp {
+	var resp []pb.GetArticleResp
 
-// 		res := pb.GetBlogsResponse{
-// 			Id:     val.Source.ID,
-// 			Title:  val.Source.Title,
-// 			Author: val.Source.Author,
-// 			// AuthorEmail: val.Source.AuthorEmail,
-// 			CreateTime: timestamppb.New(val.Source.CreateTime),
-// 			QuickRead:  val.Source.QuickRead,
-// 		}
-// 		resp = append(resp, res)
-// 	}
+	for _, val := range result.Hits.Hits {
 
-// 	return resp
-// }
+		// Add content here
+		res := pb.GetArticleResp{
+			Id:         val.Source.ID,
+			Title:      val.Source.Title,
+			AuthorName: val.Source.AuthorName,
+			AuthorId:   val.Source.AuthorID,
+			CreateTime: timestamppb.New(val.Source.CreateTime),
+		}
+		resp = append(resp, res)
+	}
+
+	return resp
+}
 
 // func partialOrAllUpdate(method string, existingArt *pb.GetBlogByIdResp, reqArt *pb.EditBlogReq) *pb.EditBlogReq {
 // 	procdArt := &pb.EditBlogReq{Id: reqArt.Id}

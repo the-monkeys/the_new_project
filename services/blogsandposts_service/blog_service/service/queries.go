@@ -12,18 +12,24 @@ const (
 	// getArticlesByTags picks articles based on the tag name, latest first
 	getArticlesByTags = `{
 		"size": 100,
+		"sort": {
+			"create_time": {
+				"order": "desc"
+			}
+		},
 		"query": {
 			"match": {
-				"is_draft": "false"
+				"published": "true"
 			}
 		},
 		"_source": {
 			"includes": [
 				"id",
 				"title",
-				"author",
-				"create_time",
-				"quick_read"
+				"content",
+				"author_name",
+				"author_id",
+				"create_time"
 			]
 		}
 	}`
@@ -40,17 +46,17 @@ func getLast100Articles() string {
 		},
 		"query": {
 			"match": {
-				"is_draft": "false"
+				"published": "true"
 			}
 		},
 		"_source": {
 			"includes": [
 				"id",
 				"title",
-				"author",
-				"create_time",
-				"quick_read",
-				"author_email"
+				"content",
+				"author_name",
+				"author_id",
+				"create_time"
 			]
 		}
 	}`

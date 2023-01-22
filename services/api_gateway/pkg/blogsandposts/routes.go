@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type BlogServiceClient struct {
@@ -29,14 +30,17 @@ func NewUserServiceClient(cfg *config.Config) pb.BlogsAndPostServiceClient {
 func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *BlogServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
-	usc := &BlogServiceClient{
+	blogCli := &BlogServiceClient{
 		Client: NewUserServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/post")
-	routes.Use(mware.AuthRequired)
-	routes.POST("/create", usc.CreateABlog)
+	routes.GET("/", blogCli.Get100Blogs)
 
-	return usc
+	routes.Use(mware.AuthRequired)
+
+	routes.POST("/create", blogCli.CreateABlog)
+
+	return blogCli
 }
 
 func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
@@ -65,4 +69,16 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 	logrus.Errorf("Response: %+v", res)
 	ctx.JSON(http.StatusAccepted, &res)
 
+}
+
+func (asc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
+
+	res, err := asc.Client.Get100Blogs(context.Background(), &emptypb.Empty{})
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+
+	}
+	logrus.Errorf("Response: %+v", res)
+	ctx.JSON(http.StatusAccepted, &res)
 }

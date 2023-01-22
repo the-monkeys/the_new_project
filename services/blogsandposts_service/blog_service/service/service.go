@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type BlogService struct {
@@ -74,4 +76,37 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq)
 		Message: "Successfully created",
 		Id:      article.Id,
 	}, nil
+}
+
+func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostService_Get100BlogsServer) error {
+	searchResponse, err := blog.osClient.GetLast100Articles()
+	var result map[string]interface{}
+
+	// logrus.Infof("Response: %+v", searchResponse)
+	decoder := json.NewDecoder(searchResponse.Body)
+	if err := decoder.Decode(&result); err != nil {
+		blog.logger.Error("error while decoding, error", err)
+	}
+
+	bx, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		blog.logger.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return err
+	}
+
+	arts := models.Last100Articles{}
+	if err := json.Unmarshal(bx, &arts); err != nil {
+		blog.logger.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return err
+	}
+
+	articles := parseToStruct(arts)
+	for _, article := range articles {
+		logrus.Printf("Article: %+v\n", article)
+		if err := stream.Send(&article); err != nil {
+			blog.logger.Errorf("error while sending stream, error %+v", err)
+		}
+	}
+
+	return nil
 }

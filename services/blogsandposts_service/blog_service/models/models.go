@@ -10,9 +10,9 @@ type Blogs struct {
 	Id          string                     `json:"id"`
 	Title       string                     `json:"title"`
 	Content     string                     `json:"content"`
-	Author      string                     `json:"author"`
-	AuthorEmail string                     `json:"author_email"`
-	Published   *bool                      `json:"is_draft"`
+	Author      string                     `json:"author_name"`
+	AuthorEmail string                     `json:"author_id"`
+	Published   *bool                      `json:"published"`
 	Tags        []string                   `json:"tags"`
 	CreateTime  string                     `json:"create_time"`
 	UpdateTime  string                     `json:"update_time"`
@@ -50,14 +50,14 @@ type Last100Articles struct {
 			ID     string      `json:"_id"`
 			Score  interface{} `json:"_score"`
 			Source struct {
-				CreateTime  time.Time `json:"create_time"`
-				QuickRead   bool      `json:"quick_read"`
-				Author      string    `json:"author"`
-				AuthorEmail string    `json:"author_email"`
-				ID          string    `json:"id"`
-				Title       string    `json:"title"`
+				AuthorName string    `json:"author_name"`
+				CreateTime time.Time `json:"create_time"`
+				ID         string    `json:"id"`
+				Title      string    `json:"title"`
+				AuthorID   string    `json:"author_id"`
+				Content    string    `json:"content"`
 			} `json:"_source"`
-			Sort []int64 `json:"sort"`
+			Sort []int `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -90,7 +90,7 @@ type GetArticleById struct {
 				Content          string    `json:"content"`
 				Author           string    `json:"author"`
 				AuthorEmail      string    `json:"author_email"`
-				IsDraft          bool      `json:"is_draft"`
+				IsDraft          bool      `json:"published"`
 				Tags             []string  `json:"tags"`
 				CreateTime       time.Time `json:"create_time"`
 				UpdateTime       time.Time `json:"update_time"`
