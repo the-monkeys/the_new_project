@@ -17,6 +17,7 @@ type UserServiceClient struct {
 }
 
 func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
+	logrus.Infof("Dialing to grpc user service: %v", cfg.ArticleSvcUrl)
 	cc, err := grpc.Dial(cfg.UserSvcUrl, grpc.WithInsecure())
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)

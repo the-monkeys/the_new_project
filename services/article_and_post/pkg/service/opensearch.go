@@ -18,13 +18,14 @@ type openSearchClient struct {
 	log    *logrus.Logger
 }
 
-func newOpenSearchClient(url, username, password string, log *logrus.Logger) (*openSearchClient, error) {
+func NewOpenSearchClient(url, username, password string, log *logrus.Logger) (*openSearchClient, error) {
 	client, err := database.NewOSClient(url, username, password)
 	if err != nil {
 		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
 		return nil, err
 	}
 
+	client.Ping()
 	return &openSearchClient{
 		client: client,
 		log:    log,

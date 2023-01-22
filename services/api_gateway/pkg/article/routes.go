@@ -11,14 +11,29 @@ import (
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type UserServiceClient struct {
+	Client pb.ArticleServiceClient
+}
+
+func NewUserServiceClient(cfg *config.Config) pb.ArticleServiceClient {
+	logrus.Infof("Dialing to grpc user service: %v", cfg.ArticleSvcUrl)
+	cc, err := grpc.Dial(cfg.ArticleSvcUrl, grpc.WithInsecure())
+	if err != nil {
+		logrus.Errorf("cannot dial to grpc user server: %v", err)
+	}
+
+	return pb.NewArticleServiceClient(cc)
+}
 
 func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	svc := &ArticleServiceClient{
-		Client: InitArticleServiceClient(cfg),
+		Client: NewUserServiceClient(cfg),
 	}
 
 	routes := r.Group("/api/v1/article")
@@ -30,7 +45,7 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 	routes.POST("/", svc.CreateArticle)
 	routes.PUT("/post/:id/", svc.EditArticles)
 	routes.PATCH("/post/:id/", svc.EditArticles)
-	routes.DELETE("/:id", svc.DeleteArticleById)
+	// routes.DELETE("/:id", svc.DeleteArticleById)
 
 }
 
@@ -139,13 +154,9 @@ func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
 
 func (svc *ArticleServiceClient) DeleteArticleById(ctx *gin.Context) {
 	id := ctx.Param("id")
-
+	logrus.Infof("id : %+v", id)
 	res, err := svc.Client.DeleteArticleById(context.Background(), &pb.GetArticleByIdReq{Id: id})
-	if err.Error() == "cannot find the document" {
-		logrus.Errorf("cannot delete the article rpc server sent, error: %v", err)
-		_ = ctx.AbortWithError(http.StatusNotFound, err)
-		return
-	}
+
 	logrus.Infof("err : %+v", err)
 	logrus.Infof("res : %+v", res)
 	if err != nil {

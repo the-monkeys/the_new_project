@@ -25,7 +25,7 @@ curl --location --request POST 'http://localhost:5001/api/v1/auth/login' \
 ## Create an article
 ```
 curl --location --request POST 'http://localhost:5001/api/v1/article/' \
---header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ5MDAzMzksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MywiRW1haWwiOiJraGFzYmFAbWFpbC5jb20ifQ.p8oKo8Ny1cSh67p_C7_oagTNdnIUpQxosz1sUSG4--k' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU5MjQ5MzgsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6NCwiRW1haWwiOiJkYXZldHdlZXRsaXZlQGdtYWlsLmNvbSJ9.5NOWbboYsxT8trJR74DcjPRhYIAXXzE9eXxfOQA8Q6Y' \
 --header 'Content-Type: application/json' \
 --data-raw '{
  "title": "Saving to Pocket via Email",

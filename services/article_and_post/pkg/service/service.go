@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -20,22 +21,22 @@ import (
 
 type ArticleServer struct {
 	Log      *logrus.Logger
-	osClient *openSearchClient
+	OsClient *openSearchClient
 	pb.UnimplementedArticleServiceServer
 }
 
-func NewArticleServer(url, username, password string, logrus *logrus.Logger) (*ArticleServer, error) {
-	client, err := newOpenSearchClient(url, username, password, logrus)
-	if err != nil {
-		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
-		return nil, err
-	}
+// func NewArticleServer(url, username, password string, logrus *logrus.Logger) (*ArticleServer, error) {
+// 	client, err := newOpenSearchClient(url, username, password, logrus)
+// 	if err != nil {
+// 		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
+// 		return nil, err
+// 	}
 
-	return &ArticleServer{
-		osClient: client,
-		Log:      logrus,
-	}, nil
-}
+// 	return &ArticleServer{
+// 		osClient: client,
+// 		Log:      logrus,
+// 	}, nil
+// }
 
 func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArticleRequest) (*pb.CreateArticleResponse, error) {
 	var article models.Article
@@ -76,7 +77,7 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 	}
 
 	// Create the articles
-	resp, err := srv.osClient.CreateAnArticle(post)
+	resp, err := srv.OsClient.CreateAnArticle(post)
 	if err != nil {
 		srv.Log.Errorf("cannot save the post, error: %+v", err)
 	}
@@ -91,7 +92,7 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 
 //
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
-	searchResponse, err := srv.osClient.GetLast100Articles()
+	searchResponse, err := srv.OsClient.GetLast100Articles()
 	if err != nil {
 		srv.Log.Error("error while getting 100 articles, error", err)
 		return err
@@ -129,7 +130,7 @@ func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.Arti
 
 func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.GetArticleByIdResp, error) {
 
-	searchResponse, err := srv.osClient.GetArticleById(ctx, req.GetId())
+	searchResponse, err := srv.OsClient.GetArticleById(ctx, req.GetId())
 	if err != nil {
 		srv.Log.Errorf("failed to find document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
@@ -200,7 +201,7 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 		Body:  document,
 	}
 
-	updateRes, err := updateReq.Do(ctx, srv.osClient.client)
+	updateRes, err := updateReq.Do(ctx, srv.OsClient.client)
 	if err != nil {
 		srv.Log.Errorf("failed to update the document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
@@ -230,20 +231,24 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 }
 
 func (srv *ArticleServer) DeleteArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.DeleteArticleByIdRes, error) {
-
-	deleteResp, err := srv.osClient.DeleteArticleById(ctx, req.GetId())
+	logrus.Infof("User has requested to delete: %s", req.GetId())
+	deleteResp, err := srv.OsClient.DeleteArticleById(ctx, req.GetId())
 	if deleteResp.StatusCode == http.StatusNotFound {
 		srv.Log.Errorf("cannot find the article %s, error: %+v", req.GetId(), err)
-		return &pb.DeleteArticleByIdRes{
+		resp := &pb.DeleteArticleByIdRes{
 			Status: int64(http.StatusNotFound),
-		}, errors.New("cannot find the document")
+		}
+		fmt.Printf("Response: %+v\n", resp)
+		return resp, errors.New("cannot find the document")
 	}
 
 	if err != nil {
 		srv.Log.Errorf("cannot delete the article %s, error: %+v", req.GetId(), err)
-		return &pb.DeleteArticleByIdRes{
-			Status: int64(http.StatusInternalServerError),
-		}, errors.New("internal server error")
+		resp := &pb.DeleteArticleByIdRes{
+			Status: int64(http.StatusNotFound),
+		}
+		fmt.Printf("Response: %+v\n", resp)
+		return resp, errors.New("internal server error")
 	}
 
 	logrus.Info(("RPC server cannot take the error"))

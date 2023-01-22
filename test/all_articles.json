@@ -1,0 +1,117 @@
+{
+    "took": 1204,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "skipped": 0,
+        "failed": 0
+    },
+    "hits": {
+        "total": {
+            "value": 4,
+            "relation": "eq"
+        },
+        "max_score": 1.0,
+        "hits": [
+            {
+                "_index": "the_monkeys_posts",
+                "_id": "2c657145-1662-4bd8-9ff3-3edc01d2f976",
+                "_score": 1.0,
+                "_source": {
+                    "id": "2c657145-1662-4bd8-9ff3-3edc01d2f976",
+                    "title": "Go Server and Client Server",
+                    "content": "<!doctype html>\n<html>\n<head>\n\t<title>HTML Editor - Full Version</title>\n</head>\n<body>\n<h1>Go Server and Client Server</h1>\n\n<p dir=\"ltr\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:15pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">To send a blog with a bunch of images and text in a random order to a React client from a Go server, you can use the following steps:</span></span></p>\n\n<ol style=\"margin-top:0;margin-bottom:0;padding-inline-start:48px;\">\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:29pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">On the Go server, create a struct or a type that can hold the data for the blog post, including the text, images, and any other relevant information.</span></span></p>\n\t</li>\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">Serialize the data into a format that can be easily transmitted over the network, such as JSON or XML.</span></span></p>\n\t</li>\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">Use the net/http package in Go to create an HTTP endpoint that can accept requests from the React client and respond with the serialized data.</span></span></p>\n\t</li>\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">On the React client, use the fetch() or axios library to send a request to the endpoint on the Go server and receive the data.</span></span></p>\n\t</li>\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">Use the received data to populate the state of the component and render the blog post to the user.</span></span></p>\n\t</li>\n\t<li aria-level=\"1\" dir=\"ltr\" style=\"list-style-type: decimal; font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre;\">\n\t<p dir=\"ltr\" role=\"presentation\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:0pt;margin-bottom:29pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">You can use random package in Golang to shuffle the images and text before sending it to the client.</span></span></p>\n\t</li>\n</ol>\n\n<p dir=\"ltr\" style=\"line-height:1.38;background-color:#f7f7f8;margin-top:15pt;margin-bottom:0pt;\"><span id=\"docs-internal-guid-fce1fcc3-7fff-14bf-1d57-fc4076b09961\"><span style=\"font-size: 12pt; font-family: Roboto, sans-serif; color: rgb(55, 65, 81); background-color: transparent; font-variant-numeric: normal; font-variant-east-asian: normal; vertical-align: baseline; white-space: pre-wrap;\">Note: This is a high-level overview of the process. There may be other considerations such as security, error handling, and optimization that you will need to take into account depending on your specific use case.</span></span></p>\n\n<div>&nbsp;</div>\n</body>\n</html>",
+                    "author": "Khasba Pandey",
+                    "author_email": "  khasba@gmail.com  ",
+                    "is_draft": false,
+                    "tags": [
+                        "golang",
+                        "server",
+                        "wow"
+                    ],
+                    "create_time": "2023-01-20T14:55:02Z",
+                    "update_time": "2023-01-20T14:55:02Z",
+                    "quick_read": false,
+                    "can_edit": true,
+                    "content_ownership": 0,
+                    "folder_path": ""
+                }
+            },
+            {
+                "_index": "the_monkeys_posts",
+                "_id": "c1140597-f110-4039-af25-18a57129c0a7",
+                "_score": 1.0,
+                "_source": {
+                    "id": "c1140597-f110-4039-af25-18a57129c0a7",
+                    "title": "The Monkeys",
+                    "content": "<!doctype html>\n<html>\n<head>\n\t<title></title>\n</head>\n<body>\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\">Welcome to The Monkeys, an educational and informational blogging platform!</p>\n\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\">We are dedicated to providing a space for individuals to share their knowledge and experiences on a variety of topics. Our platform is designed to be a resource for people looking to learn new things and expand their understanding of the world.</p>\n\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\">We invite readers/writers/experts to bring a diverse range of perspectives to the table, share their insights on everything from science and technology to personal development and self-improvement, psychology, philosophy, fashion, health and lifestyle etc.</p>\n\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\">We believe that learning should be accessible to everyone, and that&#39;s why we offer our content. Our platform is open to anyone who wants to read, learn, and grow.</p>\n\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\">We also believe in the power of community. Our platform encourages engagement and conversation, and we welcome feedback and suggestions from our readers.</p>\n\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23); margin-bottom: 0px !important;\">Thank you for visiting our platform. We hope you find it informative and educational, and that you come back often to learn and grow with us.</p>\n</body>\n</html>",
+                    "author": "Dave Augustus",
+                    "author_email": "  davetweetlive@gmail.com",
+                    "is_draft": false,
+                    "tags": [
+                        "themonkeys",
+                        "blog",
+                        "firstpost"
+                    ],
+                    "create_time": "2023-01-20T14:57:55Z",
+                    "update_time": "2023-01-20T14:57:55Z",
+                    "quick_read": false,
+                    "can_edit": true,
+                    "content_ownership": 0,
+                    "folder_path": ""
+                }
+            },
+            {
+                "_index": "the_monkeys_posts",
+                "_id": "viX8z4UBHAGzKUV0LxvZ",
+                "_score": 1.0,
+                "_source": {
+                    "query": {
+                        "match": {
+                            "id": "42712aff-0965-4945-9ee7-2e245bd6da9a"
+                        }
+                    },
+                    "script": {
+                        "source": "ctx._source.title = params.title; ctx._source.content = params.content; ctx._source.tags = params.tags",
+                        "lang": "painless",
+                        "params": {
+                            "title": " Stranger than Fiction ",
+                            "content": "<!doctype html>\n<html>\n<head>\n\t<title></title>\n</head>\n<body>\n<p dir=\"auto\" style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(201, 209, 217); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(13, 17, 23);\"><span style=\"color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\">What if you only realised the importance of your life only days before you lost it? Even knowing when or how you will die (not such a fatuous idea with the completion of the Genome Project) raises difficult questions about how much we really want to know about ourselves.</span><br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<span style=\"color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\">Such a theme is usually simplified and subsumed into religious-based tales such as It&#39;s a Wonderful Life, but taken as an idea in its own right it has considerable intellectual weight. Harold Crick finds himself the main character in a story as it unfolds, but his annoyance quickly shifts gear as he is aware of the author saying, &quot;Little did he know . . . it would lead to his imminent death.&quot;</span><br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<span style=\"color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\">Not the mindless comedy that the trailer suggests, Stranger Than Fiction is a precise and fairly cerebral story where the laughs stem more from individually appreciating certain aspects of its cleverness rather than any contrived humour.</span><br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<br style=\"box-sizing: border-box; color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\" />\n<span style=\"color: rgba(0, 0, 0, 0.87); font-family: Roboto, Helvetica, Arial, sans-serif; font-size: 16px; letter-spacing: 0.5px; background-color: rgb(255, 255, 255);\">The surface story is of a man who lives a humdrum if &#39;successful&#39; life and is awakened to a more three dimensional existence by falling in love. The additional elements will either delight or annoy. IRS auditor Crick (Will Ferrell) starts hearing a voice in his head. It is that of Kay Eiffel (Emma Thompson), a famous author. She describes exactly what he is doing but with a rather better vocabulary than he possesses. When she announces his imminent death, he takes drastic steps to meet her and persuade her to change the ending of her novel.</span></p>\n</body>\n</html>",
+                            "tags": [
+                                "lovestory",
+                                "fictional",
+                                "love",
+                                "strange "
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "_index": "the_monkeys_posts",
+                "_id": "3f9940a8-6de5-4eee-9c87-f14829ddf225",
+                "_score": 1.0,
+                "_source": {
+                    "id": "3f9940a8-6de5-4eee-9c87-f14829ddf225",
+                    "title": "Online HTML Editor",
+                    "content": "<!doctype html>\n<html>\n<head>\n\t<title>HTML Editor - Full Version</title>\n</head>\n<body>\n<h1>HTML Editor - Full Version</h1>\n\n<p>This HTML editor has a larger toolbar than the <a href=\"https://www.quackit.com/html/online-html-editor/\">standard one</a>. And you know what that means? Exactly... more buttons!</p>\n\n<p>Here is some <strong>important text</strong>. And here is text that has been <em>emphasized</em>.</p>\n\n<p>Below is an unordered (bullet) list, and an ordered/numbered list:</p>\n\n<p>Grocery list:</p>\n\n<ul>\n\t<li>Apples</li>\n\t<li>Oranges</li>\n\t<li>Bananas</li>\n</ul>\n\n<p>Things to do:</p>\n\n<ol>\n\t<li>Buy groceries</li>\n\t<li>Get haircut</li>\n\t<li>Write some HTML!</li>\n</ol>\n\n<p>View the source code by clicking on the &quot;Source&quot; button above.</p>\n</body>\n</html>",
+                    "author": "Dave Augustus",
+                    "author_email": "davetweetlive@gmail.com",
+                    "is_draft": true,
+                    "tags": [
+                        "html",
+                        "firstpost",
+                        "wow"
+                    ],
+                    "create_time": "2023-01-20T16:25:25Z",
+                    "update_time": "2023-01-20T16:25:25Z",
+                    "quick_read": true,
+                    "can_edit": true,
+                    "content_ownership": 0,
+                    "folder_path": ""
+                }
+            }
+        ]
+    }
+}
