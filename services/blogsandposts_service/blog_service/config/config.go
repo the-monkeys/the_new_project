@@ -10,6 +10,7 @@ type Config struct {
 	OSAddress         string `mapstructure:"OPENSEARCH_ADDRESS"`
 	OSUsername        string `mapstructure:"OSUSERNAME"`
 	OSPassword        string `mapstructure:"OSPASSWORD"`
+	BlogAndPostSvcURL string `mapstructure:"BLOGANDPOSTS_SVC_URL"`
 }
 
 func LoadArtNPostConfig() (config Config, err error) {

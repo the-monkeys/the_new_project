@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/config"
+	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/config"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/service"
 
@@ -25,16 +25,14 @@ func main() {
 			cfg.BlogAndPostSvcURL, err)
 	}
 
-	// articleServer, err := service.NewArticleServer(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword, logrus.New())
-	// articleServer.Log.SetReportCaller(true)
-	// articleServer.Log.SetFormatter(&logrus.TextFormatter{
-	// 	DisableColors: false,
-	// 	FullTimestamp: false,
-	// })
-	blogSev := service.BlogService{}
+	logger := logrus.New()
+
+	osClient, err := service.NewOpenSearchClient(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword, logger)
+	blogService := service.NewBlogService(*osClient, logger)
+
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterBlogsAndPostServiceServer(grpcServer, &blogSev)
+	pb.RegisterBlogsAndPostServiceServer(grpcServer, blogService)
 
 	logrus.Info("art and post service is running on address: ", cfg.BlogAndPostSvcURL)
 	if err := grpcServer.Serve(lis); err != nil {

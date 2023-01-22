@@ -2,33 +2,28 @@ package service
 
 import (
 	"context"
+	"net/http"
 	"strings"
 
+	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/sirupsen/logrus"
 )
 
 type BlogService struct {
-	client openSearchClient
-	logger *logrus.Logger
+	osClient openSearchClient
+	logger   *logrus.Logger
 	pb.UnimplementedBlogsAndPostServiceServer
 }
 
 func NewBlogService(client openSearchClient,
 	logger *logrus.Logger) *BlogService {
-	return &BlogService{client: client, logger: logger}
+	return &BlogService{osClient: client, logger: logger}
 }
 
-// func (us *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq) (*pb.CreateBlogRes, error) {
-
-// 	res := &pb.CreateBlogRes{}
-
-// 	logrus.Infof("fetched profile for the user containing id: %d", res.Id)
-// 	return res, nil
-// }
-
-func (us *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq) (*pb.CreateBlogRes, error) {
+func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq) (*pb.CreateBlogRes, error) {
+	blog.logger.Infof("received a create blog request from user: %v", req.AuthorId)
 
 	var article models.Blogs
 	// Lower cased tags and trim spaces
@@ -61,17 +56,22 @@ func (us *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogReq) (
 		FolderPath:  "",
 	}
 
-	logrus.Infof("The blog: %v", post)
 	// Create the articles
-	// resp, err := srv.OsClient.CreateAnArticle(post)
-	// if err != nil {
-	// 	srv.Log.Errorf("cannot save the post, error: %+v", err)
-	// }
+	resp, err := blog.osClient.CreateAnArticle(post)
+	if err != nil {
+		blog.logger.Errorf("cannot save the blog, error: %+v", err)
+		return nil, err
+	}
 
-	// srv.Log.Infof("The status code for the save post is: %v", resp.StatusCode)
+	if resp.StatusCode == http.StatusBadRequest {
+		blog.logger.Errorf("cannot save the blog bad request, error: %+v", err)
+		return nil, common.BadRequest
+	}
+
+	blog.logger.Infof("user %v created a blog successfully: %v", req.GetAuthorId(), req.GetId())
 
 	return &pb.CreateBlogRes{
-		Message: "Successful",
+		Message: "Successfully created",
 		Id:      article.Id,
 	}, nil
 }

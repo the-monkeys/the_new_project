@@ -43,6 +43,7 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 
 	body := CreatePostRequestBody{}
 	if err := ctx.BindJSON(&body); err != nil {
+		logrus.Errorf("cannot bind json to struct, error: %v", err)
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
@@ -57,14 +58,11 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 		Tags:       body.Tags,
 	})
 
-	logrus.Infof("Response: %+v", res)
-	logrus.Infof("Error: %+v", err)
-
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
-
+	logrus.Errorf("Response: %+v", res)
 	ctx.JSON(http.StatusAccepted, &res)
 
 }
