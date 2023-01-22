@@ -6,10 +6,11 @@ import (
 )
 
 type Config struct {
-	Port          string `mapstructure:"PORT"`
-	AuthSvcUrl    string `mapstructure:"AUTH_SVC_URL"`
-	ArticleSvcUrl string `mapstructure:"STORY_SVC_URL"`
-	UserSvcUrl    string `mapstructure:"USER_SVC_URL"`
+	Port              string `mapstructure:"PORT"`
+	AuthSvcUrl        string `mapstructure:"AUTH_SVC_URL"`
+	ArticleSvcUrl     string `mapstructure:"STORY_SVC_URL"`
+	UserSvcUrl        string `mapstructure:"USER_SVC_URL"`
+	BlogAndPostSvcURL string `mapstructure:"BLOGANDPOSTS_SVC_URL"`
 }
 
 func LoadGatewayConfig() (cfg Config, err error) {
