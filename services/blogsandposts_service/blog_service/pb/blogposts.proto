@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package Blog;
+
+option go_package = "./services/blogsandposts_service/blog_service/pb";
+
+import "google/protobuf/timestamp.proto";
+
+
+// CreateBlogRequest
+message CreateBlogRequest {
+  string Id = 1;
+  string title = 2;
+  string content  = 3;
+  string Author = 4;
+  bool isDraft = 5;
+  repeated string Tags = 6;
+  google.protobuf.Timestamp createTime = 7;
+  google.protobuf.Timestamp updateTime = 8;
+  bool quickRead = 9;
+  ContentOwnerShip contentOwnerShip = 10;
+  bool canEdit = 11;
+  string AuthorEmail = 12;
+  string folderPath = 13;
+
+  enum ContentOwnerShip {
+    THE_USER = 0;
+    THE_MONKEYS = 1;
+    THE_PARTNER = 2;
+  }
+}
+
+message CreateBlogResponse {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
+message GetBlogsRequest{}
+
+message GetBlogsResponse {
+  string Id = 1;
+  string title = 2;
+  string Author = 3;
+  string AuthorEmail = 4;
+  google.protobuf.Timestamp createTime = 5;
+  bool quickRead = 6;
+}
+
+
+message GetBlogByIdReq {
+  string Id = 1;
+}
+
+message GetBlogByIdResp {
+  string Id = 1;
+  string title = 2;
+  string author = 3;
+  string content = 4;
+  google.protobuf.Timestamp createTime = 5;
+  bool quickRead = 6;
+  repeated string Tags = 7;
+}
+
+message EditBlogReq {
+  string Id = 1;
+  string title = 2;
+  string content = 3;
+  string method = 4;
+  repeated string Tags = 5;
+}
+
+message EditBlogRes {
+  int64 status = 1;
+  string error = 2;
+  string id = 3;
+}
+
+message CreateCommentReq {
+  string id = 1;
+  string BlogId = 2;
+  string UserId = 3;
+  string comment = 4;
+
+  google.protobuf.Timestamp commentTime = 7;
+}
+
+message CreateCommentRes {
+  string BlogId = 1;
+  string message = 2;
+  string error = 3;
+}
+
+service BlogService {
+  rpc CreateBlog(CreateBlogRequest) returns (CreateBlogResponse) {}
+  rpc GetBlogs (GetBlogsRequest) returns (stream GetBlogsResponse){};
+  rpc GetBlogById (GetBlogByIdReq) returns (GetBlogByIdResp){};
+  rpc EditBlog (EditBlogReq) returns ( EditBlogRes){};
+
+  rpc CreateComment(CreateCommentReq) returns (CreateCommentRes){};
+}

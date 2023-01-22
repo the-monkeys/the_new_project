@@ -6,14 +6,13 @@ import (
 )
 
 type Config struct {
-	Port              string `mapstructure:"PORT"`
-	AuthSvcUrl        string `mapstructure:"AUTH_SVC_URL"`
-	ArticleSvcUrl     string `mapstructure:"STORY_SVC_URL"`
-	UserSvcUrl        string `mapstructure:"USER_SVC_URL"`
-	BlogAndPostSvcURL string `mapstructure:"BLOGANDPOSTS_SVC_URL"`
+	ArticleServerPort string `mapstructure:"ARTICLE_SERVICE_PORT"`
+	OSAddress         string `mapstructure:"OPENSEARCH_ADDRESS"`
+	OSUsername        string `mapstructure:"OSUSERNAME"`
+	OSPassword        string `mapstructure:"OSPASSWORD"`
 }
 
-func LoadGatewayConfig() (cfg Config, err error) {
+func LoadArtNPostConfig() (config Config, err error) {
 	viper.AddConfigPath("/etc/the_monkey")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
@@ -25,7 +24,7 @@ func LoadGatewayConfig() (cfg Config, err error) {
 		return
 	}
 
-	if err = viper.Unmarshal(&cfg); err != nil {
+	if err = viper.Unmarshal(&config); err != nil {
 		logrus.Errorf("cannot unmarshal the config file, error: %+v", err)
 		return
 	}
