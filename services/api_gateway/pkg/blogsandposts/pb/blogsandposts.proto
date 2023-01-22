@@ -45,7 +45,22 @@ message GetBlogsResponse {
   google.protobuf.Timestamp createTime = 6;
 }
 
+message GetBlogByIdRequest {
+  string Id = 1;
+}
+
+message GetBlogByIdResponse {
+  string Id = 1;
+  string title = 2;
+  string authorName = 3;
+  string authorId = 4;
+  string content = 5;
+  google.protobuf.Timestamp createTime = 6;
+  repeated string Tags = 7;
+}
+
 service BlogsAndPostService {
     rpc CreateABlog(CreateBlogRequest) returns (CreateBlogResponse) {};
     rpc Get100Blogs(google.protobuf.Empty) returns (stream GetBlogsResponse) {};
+    rpc GetBlogById(GetBlogByIdRequest) returns (GetBlogByIdResponse){};
 }

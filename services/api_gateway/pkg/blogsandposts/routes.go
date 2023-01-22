@@ -36,6 +36,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	}
 	routes := router.Group("/api/v1/post")
 	routes.GET("/", blogCli.Get100Blogs)
+	routes.GET("/:id", blogCli.GetArticleById)
 
 	routes.Use(mware.AuthRequired)
 
@@ -97,4 +98,17 @@ func (svc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, response)
+}
+
+func (svc *BlogServiceClient) GetArticleById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	res, err := svc.Client.GetBlogById(context.Background(), &pb.GetBlogByIdRequest{Id: id})
+	if err != nil {
+		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
 }

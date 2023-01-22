@@ -88,13 +88,12 @@ type GetArticleById struct {
 				ID               string    `json:"id"`
 				Title            string    `json:"title"`
 				Content          string    `json:"content"`
-				Author           string    `json:"author"`
-				AuthorEmail      string    `json:"author_email"`
-				IsDraft          bool      `json:"published"`
+				AuthorName       string    `json:"author_name"`
+				AuthorID         string    `json:"author_id"`
+				Published        bool      `json:"published"`
 				Tags             []string  `json:"tags"`
 				CreateTime       time.Time `json:"create_time"`
 				UpdateTime       time.Time `json:"update_time"`
-				QuickRead        bool      `json:"quick_read"`
 				CanEdit          bool      `json:"can_edit"`
 				ContentOwnership int       `json:"content_ownership"`
 				FolderPath       string    `json:"folder_path"`

@@ -10,8 +10,15 @@ import (
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// TODO:
+// Create blog time is not correct
+// Get blog time is not showing correct
 
 type BlogService struct {
 	osClient openSearchClient
@@ -108,4 +115,50 @@ func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostS
 	}
 
 	return nil
+}
+
+func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdRequest) (*pb.GetBlogByIdResponse, error) {
+
+	searchResponse, err := blog.osClient.GetArticleById(ctx, req.GetId())
+	if err != nil {
+		blog.logger.Errorf("failed to find document, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
+	}
+
+	var result map[string]interface{}
+
+	// logrus.Infof("Response: %+v", searchResponse)
+
+	decoder := json.NewDecoder(searchResponse.Body)
+	if err := decoder.Decode(&result); err != nil {
+		blog.logger.Error("error while decoding result, error", err)
+		return nil, status.Errorf(codes.Internal, "cannot decode opensearch response: %v", err)
+	}
+
+	bx, err := json.MarshalIndent(result, "", "    ")
+
+	if err != nil {
+		blog.logger.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot marshal opensearch response: %v", err)
+	}
+
+	art := models.GetArticleById{}
+	if err := json.Unmarshal(bx, &art); err != nil {
+		blog.logger.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
+	}
+
+	if err != nil {
+		blog.logger.Errorf("cannot parse string timestamp to timestamp, error %v", err)
+	}
+	logrus.Infof("Times: %+v", art.Hits.Hits[0].Source.CreateTime)
+	return &pb.GetBlogByIdResponse{
+		Id:         art.Hits.Hits[0].Source.ID,
+		Title:      art.Hits.Hits[0].Source.Title,
+		AuthorName: art.Hits.Hits[0].Source.AuthorName,
+		AuthorId:   art.Hits.Hits[0].Source.AuthorID,
+		Content:    art.Hits.Hits[0].Source.Content,
+		CreateTime: timestamppb.New(art.Hits.Hits[0].Source.CreateTime),
+		Tags:       art.Hits.Hits[0].Source.Tags,
+	}, nil
 }
