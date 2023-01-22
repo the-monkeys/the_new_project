@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -130,7 +131,7 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 
 	searchResponse, err := srv.osClient.GetArticleById(ctx, req.GetId())
 	if err != nil {
-		logrus.Errorf("failed to find document, error: %+v", err)
+		srv.Log.Errorf("failed to find document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
 	}
 
@@ -140,25 +141,25 @@ func (srv *ArticleServer) GetArticleById(ctx context.Context, req *pb.GetArticle
 
 	decoder := json.NewDecoder(searchResponse.Body)
 	if err := decoder.Decode(&result); err != nil {
-		logrus.Error("error while decoding result, error", err)
+		srv.Log.Error("error while decoding result, error", err)
 		return nil, status.Errorf(codes.Internal, "cannot decode opensearch response: %v", err)
 	}
 
 	bx, err := json.MarshalIndent(result, "", "    ")
 
 	if err != nil {
-		logrus.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		srv.Log.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot marshal opensearch response: %v", err)
 	}
 
 	art := models.GetArticleById{}
 	if err := json.Unmarshal(bx, &art); err != nil {
-		logrus.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		srv.Log.Errorf("cannot unmarshal byte slice, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
 	if err != nil {
-		logrus.Errorf("cannot parse string timestamp to timestamp, error %v", err)
+		srv.Log.Errorf("cannot parse string timestamp to timestamp, error %v", err)
 	}
 
 	return &pb.GetArticleByIdResp{
@@ -184,7 +185,7 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 	// Get the document from opensearch
 	existingArticle, err := srv.GetArticleById(ctx, &pb.GetArticleByIdReq{Id: req.GetId()})
 	if err != nil {
-		logrus.Errorf("cannot get the existing article, error: %+v", err)
+		srv.Log.Errorf("cannot get the existing article, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot get the existing article, error: %v", err)
 	}
 
@@ -201,29 +202,53 @@ func (srv *ArticleServer) EditArticle(ctx context.Context, req *pb.EditArticleRe
 
 	updateRes, err := updateReq.Do(ctx, srv.osClient.client)
 	if err != nil {
-		logrus.Errorf("failed to update the document, error: %+v", err)
+		srv.Log.Errorf("failed to update the document, error: %+v", err)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
 	}
 
 	if updateRes.IsError() {
-		logrus.Errorf("cannot update the document, error: %+v", updateRes)
+		srv.Log.Errorf("cannot update the document, error: %+v", updateRes)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
 	}
 
 	if updateRes.StatusCode == http.StatusBadRequest {
-		logrus.Errorf("cannot update the document, bad request, error: %+v", updateRes)
+		srv.Log.Errorf("cannot update the document, bad request, error: %+v", updateRes)
 		return nil, status.Errorf(codes.Internal, "cannot update the document, error: %v", err)
 	}
 
 	logrus.Infof("Updated the article %s", req.Id)
 
 	if updateRes.IsError() {
-		logrus.Errorf("failed to update the document, bad request, error: %+v", err)
+		srv.Log.Errorf("failed to update the document, bad request, error: %+v", err)
 		return nil, status.Errorf(codes.InvalidArgument, "cannot update the document, error: %v", err)
 	}
 
 	return &pb.EditArticleRes{
 		Status: http.StatusCreated,
 		Id:     toBeUpdated.Id,
+	}, nil
+}
+
+func (srv *ArticleServer) DeleteArticleById(ctx context.Context, req *pb.GetArticleByIdReq) (*pb.DeleteArticleByIdRes, error) {
+
+	deleteResp, err := srv.osClient.DeleteArticleById(ctx, req.GetId())
+	if deleteResp.StatusCode == http.StatusNotFound {
+		srv.Log.Errorf("cannot find the article %s, error: %+v", req.GetId(), err)
+		return &pb.DeleteArticleByIdRes{
+			Status: int64(http.StatusNotFound),
+		}, errors.New("cannot find the document")
+	}
+
+	if err != nil {
+		srv.Log.Errorf("cannot delete the article %s, error: %+v", req.GetId(), err)
+		return &pb.DeleteArticleByIdRes{
+			Status: int64(http.StatusInternalServerError),
+		}, errors.New("internal server error")
+	}
+
+	logrus.Info(("RPC server cannot take the error"))
+	return &pb.DeleteArticleByIdRes{
+		Status: int64(deleteResp.StatusCode),
+		Id:     req.GetId(),
 	}, nil
 }

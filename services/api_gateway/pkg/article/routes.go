@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
+	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article/pb"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -30,6 +30,7 @@ func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.S
 	routes.POST("/", svc.CreateArticle)
 	routes.PUT("/post/:id/", svc.EditArticles)
 	routes.PATCH("/post/:id/", svc.EditArticles)
+	routes.DELETE("/:id", svc.DeleteArticleById)
 
 }
 
@@ -129,6 +130,26 @@ func (svc *ArticleServiceClient) EditArticles(ctx *gin.Context) {
 
 	if err != nil {
 		logrus.Errorf("cannot connect to article rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
+}
+
+func (svc *ArticleServiceClient) DeleteArticleById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	res, err := svc.Client.DeleteArticleById(context.Background(), &pb.GetArticleByIdReq{Id: id})
+	if err.Error() == "cannot find the document" {
+		logrus.Errorf("cannot delete the article rpc server sent, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+	logrus.Infof("err : %+v", err)
+	logrus.Infof("res : %+v", res)
+	if err != nil {
+		logrus.Errorf("cannot delete the article rpc server sent, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

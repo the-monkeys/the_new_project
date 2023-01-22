@@ -26,6 +26,7 @@ type ArticleServiceClient interface {
 	GetArticles(ctx context.Context, in *GetArticlesRequest, opts ...grpc.CallOption) (ArticleService_GetArticlesClient, error)
 	GetArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (*GetArticleByIdResp, error)
 	EditArticle(ctx context.Context, in *EditArticleReq, opts ...grpc.CallOption) (*EditArticleRes, error)
+	DeleteArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (*DeleteArticleByIdRes, error)
 	CreateComment(ctx context.Context, in *CreateCommentReq, opts ...grpc.CallOption) (*CreateCommentRes, error)
 }
 
@@ -96,6 +97,15 @@ func (c *articleServiceClient) EditArticle(ctx context.Context, in *EditArticleR
 	return out, nil
 }
 
+func (c *articleServiceClient) DeleteArticleById(ctx context.Context, in *GetArticleByIdReq, opts ...grpc.CallOption) (*DeleteArticleByIdRes, error) {
+	out := new(DeleteArticleByIdRes)
+	err := c.cc.Invoke(ctx, "/article.ArticleService/DeleteArticleById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *articleServiceClient) CreateComment(ctx context.Context, in *CreateCommentReq, opts ...grpc.CallOption) (*CreateCommentRes, error) {
 	out := new(CreateCommentRes)
 	err := c.cc.Invoke(ctx, "/article.ArticleService/CreateComment", in, out, opts...)
@@ -113,6 +123,7 @@ type ArticleServiceServer interface {
 	GetArticles(*GetArticlesRequest, ArticleService_GetArticlesServer) error
 	GetArticleById(context.Context, *GetArticleByIdReq) (*GetArticleByIdResp, error)
 	EditArticle(context.Context, *EditArticleReq) (*EditArticleRes, error)
+	DeleteArticleById(context.Context, *GetArticleByIdReq) (*DeleteArticleByIdRes, error)
 	CreateComment(context.Context, *CreateCommentReq) (*CreateCommentRes, error)
 	mustEmbedUnimplementedArticleServiceServer()
 }
@@ -132,6 +143,9 @@ func (UnimplementedArticleServiceServer) GetArticleById(context.Context, *GetArt
 }
 func (UnimplementedArticleServiceServer) EditArticle(context.Context, *EditArticleReq) (*EditArticleRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditArticle not implemented")
+}
+func (UnimplementedArticleServiceServer) DeleteArticleById(context.Context, *GetArticleByIdReq) (*DeleteArticleByIdRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteArticleById not implemented")
 }
 func (UnimplementedArticleServiceServer) CreateComment(context.Context, *CreateCommentReq) (*CreateCommentRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
@@ -224,6 +238,24 @@ func _ArticleService_EditArticle_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArticleService_DeleteArticleById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetArticleByIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ArticleServiceServer).DeleteArticleById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/article.ArticleService/DeleteArticleById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ArticleServiceServer).DeleteArticleById(ctx, req.(*GetArticleByIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ArticleService_CreateComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateCommentReq)
 	if err := dec(in); err != nil {
@@ -260,6 +292,10 @@ var ArticleService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EditArticle",
 			Handler:    _ArticleService_EditArticle_Handler,
+		},
+		{
+			MethodName: "DeleteArticleById",
+			Handler:    _ArticleService_DeleteArticleById_Handler,
 		},
 		{
 			MethodName: "CreateComment",

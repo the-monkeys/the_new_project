@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
+	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article/pb"
 	"google.golang.org/grpc"
 )
 

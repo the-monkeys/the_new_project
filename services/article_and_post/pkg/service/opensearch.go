@@ -113,10 +113,42 @@ func (oso *openSearchClient) GetArticleById(ctx context.Context, id string) (*op
 		return nil, err
 	}
 
+	logrus.Infof("Status code: ", searchResponse.StatusCode)
+
 	if searchResponse.IsError() {
 		oso.log.Errorf("error fetching the article, %v, search response: %+v", id, searchResponse)
 		return searchResponse, err
 	}
 
 	return searchResponse, nil
+}
+
+// GetArticleById gets us an articles matching the id
+func (oso *openSearchClient) DeleteArticleById(ctx context.Context, id string) (*opensearchapi.Response, error) {
+	oso.log.Infof("deleting the article: %v", id)
+
+	delete := opensearchapi.DeleteRequest{
+		Index:      utils.OpensearchArticleIndex,
+		DocumentID: id,
+	}
+
+	deleteResponse, err := delete.Do(context.Background(), oso.client)
+	// if err != nil {
+	// 	oso.log.Errorf("failed to delete the article, error: %+v", err)
+	// 	return nil, err
+	// }
+
+	// logrus.Infof("Status code: %v", deleteResponse.StatusCode)
+
+	// if deleteResponse.StatusCode == http.StatusNotFound {
+	// 	oso.log.Errorf("cannot find the article, %v, search response: %+v", id, deleteResponse)
+	// 	return deleteResponse, errors.New("cannot find the document")
+	// }
+
+	// if deleteResponse.IsError() {
+	// 	oso.log.Errorf("error deleting the article, %v, search response: %+v", id, deleteResponse)
+	// 	return deleteResponse, err
+	// }
+
+	return deleteResponse, err
 }
