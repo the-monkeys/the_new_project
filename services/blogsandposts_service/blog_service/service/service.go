@@ -111,7 +111,6 @@ func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostS
 
 	articles := parseToStruct(arts)
 	for _, article := range articles {
-		logrus.Printf("Article: %+v\n", article)
 		if err := stream.Send(&article); err != nil {
 			blog.logger.Errorf("error while sending stream, error %+v", err)
 		}

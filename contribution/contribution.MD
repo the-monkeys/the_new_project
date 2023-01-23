@@ -44,8 +44,10 @@ $ `golangci-lint run`
 
 
 
-### NOTE:
-* Raise a pull request(PR) against the main branch, rebase before raising the PR.
+# PR Approval and Merge
+
+We are keeping some checks before merging the PRs to the main branch to maintain the code for a long time and for now we have setup the following rules, it future we may update the rules use some automation and pipeline for code and consistency checks.
+
 * All the PRs need to be approved by [Dave Augustus](https://github.com/daveaugustus) before the merge.
 * Code consistency needs to be checked before raising the PR.
 * Spelling needs to be checked before the PR.

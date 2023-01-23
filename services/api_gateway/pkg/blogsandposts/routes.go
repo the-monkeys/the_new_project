@@ -71,7 +71,7 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 		ctx.AbortWithError(http.StatusBadGateway, err)
 		return
 	}
-	logrus.Errorf("Response: %+v", res)
+
 	ctx.JSON(http.StatusAccepted, &res)
 
 }
