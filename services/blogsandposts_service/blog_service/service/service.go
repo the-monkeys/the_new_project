@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
@@ -19,8 +20,6 @@ import (
 )
 
 // TODO: The following
-// Create blog time is not correct
-// Get blog time is not showing correct
 // Get blog by id is throwing error if the blog doesn't exist
 
 type BlogService struct {
@@ -53,18 +52,19 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequ
 
 	// Assign to models struct
 	post := models.Blogs{
-		Id:         req.Id,
-		Title:      req.Title,
-		Content:    req.Content,
-		AuthorName: req.AuthorName,
-		AuthorId:   req.AuthorId,
-		Published:  &req.Published,
-		Tags:       req.Tags,
-		CreateTime: req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		UpdateTime: req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		CanEdit:    &req.CanEdit,
-		OwnerShip:  req.Ownership,
-		FolderPath: "",
+		Id:               req.Id,
+		Title:            req.Title,
+		ContentFormatted: req.Content,
+		ContentRaw:       formattedToRawContent(req.Content),
+		AuthorName:       req.AuthorName,
+		AuthorId:         req.AuthorId,
+		Published:        &req.Published,
+		Tags:             req.Tags,
+		CreateTime:       time.Now().Format("2006-01-02T15:04:05Z07:00"),
+		UpdateTime:       time.Now().Format("2006-01-02T15:04:05Z07:00"),
+		CanEdit:          &req.CanEdit,
+		OwnerShip:        req.Ownership,
+		FolderPath:       "",
 	}
 
 	// Create the articles
@@ -128,6 +128,11 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		return nil, status.Errorf(codes.Internal, "failed to find the document, error: %v", err)
 	}
 
+	if searchResponse.IsError() {
+		blog.logger.Errorf("error fetching the article, %v, search response: %+v", req.Id, searchResponse)
+		return nil, err
+	}
+
 	var result map[string]interface{}
 
 	// logrus.Infof("Response: %+v", searchResponse)
@@ -150,17 +155,17 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	if len(art.Hits.Hits) == 0 {
-		blog.logger.Errorf("cannot find the blog : %v", req.GetId())
-		return nil, status.Errorf(codes.NotFound, "cannot find the document")
-	}
+	// if len(art.Hits.Hits) == 0 {
+	// 	blog.logger.Errorf("cannot find the blog : %v", req.GetId())
+	// 	return nil, status.Errorf(codes.NotFound, "cannot find the document")
+	// }
 
 	return &pb.GetBlogByIdResponse{
 		Id:         art.Hits.Hits[0].Source.ID,
 		Title:      art.Hits.Hits[0].Source.Title,
 		AuthorName: art.Hits.Hits[0].Source.AuthorName,
 		AuthorId:   art.Hits.Hits[0].Source.AuthorID,
-		Content:    art.Hits.Hits[0].Source.Content,
+		Content:    art.Hits.Hits[0].Source.ContentFormatted,
 		CreateTime: timestamppb.New(art.Hits.Hits[0].Source.CreateTime),
 		Tags:       art.Hits.Hits[0].Source.Tags,
 	}, nil

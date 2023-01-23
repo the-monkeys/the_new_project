@@ -103,19 +103,16 @@ func (oso *openSearchClient) GetArticleById(ctx context.Context, id string) (*op
 	content := strings.NewReader(getArticleById(id))
 
 	search := opensearchapi.SearchRequest{
-		Index: []string{utils.OpensearchArticleIndex},
-		Body:  content,
+		Index:      []string{utils.OpensearchArticleIndex},
+		Body:       content,
+		ErrorTrace: true,
 	}
-
+	b := false
+	search.AllowPartialSearchResults = &b
 	searchResponse, err := search.Do(ctx, oso.client)
 	if err != nil {
 		oso.log.Errorf("failed to find document, error: %+v", err)
 		return nil, err
-	}
-
-	if searchResponse.IsError() {
-		oso.log.Errorf("error fetching the article, %v, search response: %+v", id, searchResponse)
-		return searchResponse, err
 	}
 
 	return searchResponse, nil

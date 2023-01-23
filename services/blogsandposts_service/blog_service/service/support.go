@@ -1,8 +1,13 @@
 package service
 
 import (
+	"regexp"
+	"sort"
+	"strings"
+
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
+	"github.com/microcosm-cc/bluemonday"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -17,6 +22,7 @@ func parseToStruct(result models.Last100Articles) []pb.GetBlogsResponse {
 			Title:      val.Source.Title,
 			AuthorName: val.Source.AuthorName,
 			AuthorId:   val.Source.AuthorID,
+			Content:    strings.Replace(strings.Replace(val.Source.ContentRaw, "\t", " ", -1), "\n", "", -1),
 			CreateTime: timestamppb.New(val.Source.CreateTime),
 		}
 		resp = append(resp, res)
@@ -51,4 +57,28 @@ func partialOrAllUpdate(isPartial bool, existingArt *pb.GetBlogByIdResponse, req
 	}
 
 	return procdArt
+}
+
+func formattedToRawContent(content string) string {
+	p := bluemonday.StripTagsPolicy()
+	raw := p.Sanitize(content)
+
+	return raw
+}
+
+func RemoveHtmlTag(in string) string {
+	// regex to match html tag
+	const pattern = `(<\/?[a-zA-A]+?[^>]*\/?>)*`
+	r := regexp.MustCompile(pattern)
+	groups := r.FindAllString(in, -1)
+	// should replace long string first
+	sort.Slice(groups, func(i, j int) bool {
+		return len(groups[i]) > len(groups[j])
+	})
+	for _, group := range groups {
+		if strings.TrimSpace(group) != "" {
+			in = strings.ReplaceAll(in, group, "")
+		}
+	}
+	return in
 }
