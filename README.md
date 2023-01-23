@@ -19,16 +19,7 @@ Thank you for visiting our platform. We hope you find it informative and educati
 
 
 # Contribution Guidelines:
-If you are want to contribute to the project, mail us at davetweetlive@gmail.com for access with your github account details. 
+We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. To start contributing, check the [Contributing Guidelines](contribution/contribution.MD).
 
-* Once you get the access, pick an issue and code for it.
-* Raise a pull request(PR) against the main branch, rebase before raising the PR.
-* All the PRs need to be approved by [Dave Augustus](https://github.com/daveaugustus) before the merge.
-* Code consistency needs to be checked before raising the PR.
-* Spelling needs to be checked before the PR.
-* The sensitive information like environment variables shouldn't be in the code.
-* Linting needs to be checked.
+ 
 
-# Local setup Guideline
-
-Follow through [contribution docs](contribution/contribution.MD) for setting up the project locally
