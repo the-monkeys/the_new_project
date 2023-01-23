@@ -7,18 +7,19 @@ import (
 )
 
 type Blogs struct {
-	Id         string                         `json:"id"`
-	Title      string                         `json:"title"`
-	Content    string                         `json:"content"`
-	AuthorName string                         `json:"author_name"`
-	AuthorId   string                         `json:"author_id"`
-	Published  *bool                          `json:"published"`
-	Tags       []string                       `json:"tags"`
-	CreateTime string                         `json:"create_time"`
-	UpdateTime string                         `json:"update_time"`
-	CanEdit    *bool                          `json:"can_edit"`
-	OwnerShip  pb.CreateBlogRequest_Ownership `json:"content_ownership"`
-	FolderPath string                         `json:"folder_path"`
+	Id               string                         `json:"id"`
+	Title            string                         `json:"title"`
+	ContentFormatted string                         `json:"content_formatted"`
+	ContentRaw       string                         `json:"content_raw"`
+	AuthorName       string                         `json:"author_name"`
+	AuthorId         string                         `json:"author_id"`
+	Published        *bool                          `json:"published"`
+	Tags             []string                       `json:"tags"`
+	CreateTime       string                         `json:"create_time"`
+	UpdateTime       string                         `json:"update_time"`
+	CanEdit          *bool                          `json:"can_edit"`
+	OwnerShip        pb.CreateBlogRequest_Ownership `json:"content_ownership"`
+	FolderPath       string                         `json:"folder_path"`
 }
 
 type GetArticleResp struct {
@@ -51,13 +52,13 @@ type Last100Articles struct {
 			Score  interface{} `json:"_score"`
 			Source struct {
 				AuthorName string    `json:"author_name"`
+				ContentRaw string    `json:"content_raw"`
 				CreateTime time.Time `json:"create_time"`
 				ID         string    `json:"id"`
 				Title      string    `json:"title"`
 				AuthorID   string    `json:"author_id"`
-				Content    string    `json:"content"`
 			} `json:"_source"`
-			Sort []int `json:"sort"`
+			Sort []int64 `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -87,7 +88,8 @@ type GetArticleById struct {
 			Source struct {
 				ID               string    `json:"id"`
 				Title            string    `json:"title"`
-				Content          string    `json:"content"`
+				ContentFormatted string    `json:"content_formatted"`
+				ContentRaw       string    `json:"content_raw"`
 				AuthorName       string    `json:"author_name"`
 				AuthorID         string    `json:"author_id"`
 				Published        bool      `json:"published"`

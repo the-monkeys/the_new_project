@@ -26,7 +26,7 @@ const (
 			"includes": [
 				"id",
 				"title",
-				"content",
+				"content_raw",
 				"author_name",
 				"author_id",
 				"create_time"
@@ -53,7 +53,7 @@ func getLast100Articles() string {
 			"includes": [
 				"id",
 				"title",
-				"content",
+				"content_raw",
 				"author_name",
 				"author_id",
 				"create_time"
