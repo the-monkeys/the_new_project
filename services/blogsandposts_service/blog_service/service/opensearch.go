@@ -66,7 +66,7 @@ func (oso *openSearchClient) CreateAnArticle(article models.Blogs) (*opensearcha
 		return insertResponse, err
 	}
 
-	oso.log.Infof("successfully created an article for user: %s, insert response: %+v", article.AuthorEmail, insertResponse)
+	oso.log.Infof("successfully created an article for user: %s, insert response: %+v", article.AuthorId, insertResponse)
 	return insertResponse, nil
 }
 

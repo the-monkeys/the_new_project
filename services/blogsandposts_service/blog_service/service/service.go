@@ -53,18 +53,18 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequ
 
 	// Assign to models struct
 	post := models.Blogs{
-		Id:          req.Id,
-		Title:       req.Title,
-		Content:     req.Content,
-		Author:      req.AuthorName,
-		AuthorEmail: req.AuthorId,
-		Published:   &req.Published,
-		Tags:        req.Tags,
-		CreateTime:  req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		UpdateTime:  req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
-		CanEdit:     &req.CanEdit,
-		OwnerShip:   req.Ownership,
-		FolderPath:  "",
+		Id:         req.Id,
+		Title:      req.Title,
+		Content:    req.Content,
+		AuthorName: req.AuthorName,
+		AuthorId:   req.AuthorId,
+		Published:  &req.Published,
+		Tags:       req.Tags,
+		CreateTime: req.CreateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		UpdateTime: req.UpdateTime.AsTime().Format("2006-01-02T15:04:05Z07:00"),
+		CanEdit:    &req.CanEdit,
+		OwnerShip:  req.Ownership,
+		FolderPath: "",
 	}
 
 	// Create the articles
