@@ -155,10 +155,10 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 		return nil, status.Errorf(codes.Internal, "cannot unmarshal opensearch response: %v", err)
 	}
 
-	// if len(art.Hits.Hits) == 0 {
-	// 	blog.logger.Errorf("cannot find the blog : %v", req.GetId())
-	// 	return nil, status.Errorf(codes.NotFound, "cannot find the document")
-	// }
+	if len(art.Hits.Hits) == 0 {
+		blog.logger.Errorf("cannot find the blog : %v", req.GetId())
+		return nil, status.Errorf(codes.NotFound, "cannot find the document")
+	}
 
 	return &pb.GetBlogByIdResponse{
 		Id:         art.Hits.Hits[0].Source.ID,
