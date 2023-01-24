@@ -15,4 +15,7 @@
 # vendor/
 
 ./api_gateway/config/dev.env
-./test/*
+
+.test/*
+
+Makefile
