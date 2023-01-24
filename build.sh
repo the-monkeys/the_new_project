@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 
 for dir in services/*/cmd; 
 
@@ -13,7 +14,7 @@ do
     IFS=' '
     read -ra ADDR <<<$microservice_name
 
-    (cd "$dir" && go build -o "$microservice_name"); 
+    (cd "$dir" && go build -o "/usr/local/bin/the_monkeys/$microservice_name"); 
 done
 
 
