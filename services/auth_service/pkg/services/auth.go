@@ -7,6 +7,7 @@ import (
 	"net/smtp"
 	"time"
 
+	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/config"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/db"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
@@ -15,7 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Server struct {
@@ -26,10 +26,9 @@ type Server struct {
 }
 
 func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	var user models.User
-	var passReset models.PasswordReset
+	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.User{Email: req.Email}).First(&user); result.Error == nil {
+	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusConflict,
 			Error:  "email already exists",
@@ -40,15 +39,12 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	user.LastName = req.LastName
 	user.Email = req.Email
 	user.Password = utils.HashPassword(req.Password)
-	user.CreateTime = timestamppb.New(time.Now()).String()
-	user.UpdateTime = timestamppb.New(time.Now()).String()
+	user.CreateTime = time.Now().Format(common.DATE_TIME_FORMAT)
+	user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.IsActive = true
 	user.Role = int32(pb.UserRole_USER_NORMAL)
 
-	passReset.Email = req.Email
-
 	s.H.GormConn.Create(&user)
-	s.H.GormConn.Create(&passReset)
 
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
@@ -56,9 +52,9 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 }
 
 func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	var user models.User
+	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.User{Email: req.Email}).First(&user); result.Error != nil {
+	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
 		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
@@ -95,9 +91,9 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 		}, nil
 	}
 
-	var user models.User
+	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.User{Email: claims.Email}).First(&user); result.Error != nil {
+	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
@@ -111,7 +107,7 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 }
 
 func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
-	var user models.User
+	var user models.TheMonkeysUser
 
 	if err := s.H.Psql.QueryRow("SELECT first_name, last_name, email from users where email=$1;", req.GetEmail()).Scan(
 		&user.FirstName, &user.LastName, &user.Email); err != nil {
@@ -186,7 +182,7 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 
 func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
 	var pwr models.PasswordReset
-	var user models.User
+	var user models.TheMonkeysUser
 	var timeOut string
 	if err := s.H.Psql.QueryRow("SELECT email,recovery_hash, time_out FROM password_resets WHERE email=$1;", req.GetEmail()).
 		Scan(&pwr.Email, &pwr.RecoveryHash, &timeOut); err != nil {

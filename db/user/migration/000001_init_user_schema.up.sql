@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS the_monkneys_user
+CREATE TABLE IF NOT EXISTS the_monkeys_user
 (
     id SERIAL,
     unique_id text NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS pw_reset
     CONSTRAINT password_resets_pkey PRIMARY KEY (id),
 
     CONSTRAINT fk_user_id FOREIGN KEY (user_id)
-        REFERENCES the_monkneys_user(id) MATCH SIMPLE
+        REFERENCES the_monkeys_user(id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION 
 );
