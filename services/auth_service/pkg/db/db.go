@@ -9,13 +9,34 @@ import (
 	"gorm.io/gorm"
 )
 
-type Handler struct {
-	GormConn *gorm.DB
-	Psql     *sql.DB
+type AuthDBHandler struct {
+	GormClient *gorm.DB
+	PsqlClient *sql.DB
 }
 
-func Init(url string) Handler {
-	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
+// func Init(url string) AuthDBHandler {
+// 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
+// 	if err != nil {
+// 		logrus.Fatalf("cannot open through gorm driver, error:, %+v", err)
+// 	}
+
+// 	dbPsql, err := sql.Open("postgres", url)
+// 	if err != nil {
+// 		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)
+// 		return AuthDBHandler{}
+// 	}
+
+// 	if err = dbPsql.Ping(); err != nil {
+// 		logrus.Errorf("ping test failed to psql using sql driver, error: %+v", err)
+// 		return AuthDBHandler{}
+// 	}
+
+// 	return AuthDBHandler{GormConn: db, Psql: dbPsql}
+// }
+
+//
+func NewAuthDBHandler(url string) (*AuthDBHandler, error) {
+	dbGorm, err := gorm.Open(postgres.Open(url), &gorm.Config{})
 	if err != nil {
 		logrus.Fatalf("cannot open through gorm driver, error:, %+v", err)
 	}
@@ -23,13 +44,14 @@ func Init(url string) Handler {
 	dbPsql, err := sql.Open("postgres", url)
 	if err != nil {
 		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)
-		return Handler{}
+		return nil, err
 	}
 
 	if err = dbPsql.Ping(); err != nil {
 		logrus.Errorf("ping test failed to psql using sql driver, error: %+v", err)
-		return Handler{}
+		return nil, err
+
 	}
 
-	return Handler{GormConn: db, Psql: dbPsql}
+	return &AuthDBHandler{GormClient: dbGorm, PsqlClient: dbPsql}, nil
 }

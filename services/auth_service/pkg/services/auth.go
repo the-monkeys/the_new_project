@@ -18,22 +18,35 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type Server struct {
-	H      db.Handler
-	Jwt    utils.JwtWrapper
-	Config config.Config
+type AuthServer struct {
+	dbCli  *db.AuthDBHandler
+	jwt    utils.JwtWrapper
+	config config.Config
 	pb.UnimplementedAuthServiceServer
 }
 
-func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func NewAuthServer(dbCli *db.AuthDBHandler, jwt utils.JwtWrapper, config config.Config) *AuthServer {
+	return &AuthServer{
+		dbCli:  dbCli,
+		jwt:    jwt,
+		config: config,
+	}
+}
+
+func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
+	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusConflict,
 			Error:  "email already exists",
 		}, nil
 	}
+
+	return &pb.RegisterResponse{
+		Status: http.StatusOK,
+		Error:  "no error",
+	}, nil
 
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
@@ -44,17 +57,17 @@ func (s *Server) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.Reg
 	user.IsActive = true
 	user.Role = int32(pb.UserRole_USER_NORMAL)
 
-	s.H.GormConn.Create(&user)
+	s.dbCli.GormClient.Create(&user)
 
 	return &pb.RegisterResponse{
 		Status: http.StatusCreated,
 	}, nil
 }
 
-func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
+	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
 		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
@@ -72,7 +85,7 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 		}, nil
 	}
 
-	token, _ := s.Jwt.GenerateToken(user)
+	token, _ := s.jwt.GenerateToken(user)
 
 	logrus.Infof("user containing email: %s, can successfully login", req.Email)
 	return &pb.LoginResponse{
@@ -81,8 +94,8 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 	}, nil
 }
 
-func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
-	claims, err := s.Jwt.ValidateToken(req.Token)
+func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+	claims, err := s.jwt.ValidateToken(req.Token)
 
 	if err != nil {
 		return &pb.ValidateResponse{
@@ -93,7 +106,7 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 
 	var user models.TheMonkeysUser
 
-	if result := s.H.GormConn.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
+	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
@@ -106,10 +119,10 @@ func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.Val
 	}, nil
 }
 
-func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
+func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
 	var user models.TheMonkeysUser
 
-	if err := s.H.Psql.QueryRow("SELECT first_name, last_name, email from users where email=$1;", req.GetEmail()).Scan(
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT first_name, last_name, email from users where email=$1;", req.GetEmail()).Scan(
 		&user.FirstName, &user.LastName, &user.Email); err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			logrus.Errorf("cannot find the email %s, error: %v", req.Email, err)
@@ -130,7 +143,7 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 	emailVerifyHash := utils.HashPassword(string(randomHash))
 
 	// TODO: start a database transaction from here till all the process are complete
-	sqlStmt, err := s.H.Psql.Prepare("UPDATE password_resets SET recovery_hash=$1, time_out=$2, last_password_reset=$3 WHERE email=$4")
+	sqlStmt, err := s.dbCli.PsqlClient.Prepare("UPDATE password_resets SET recovery_hash=$1, time_out=$2, last_password_reset=$3 WHERE email=$4")
 	if err != nil {
 		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
 		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
@@ -152,9 +165,9 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 	}
 
 	// **********************************SEND EMAIL WITH PW RESET LINK***************************************
-	fromEmail := s.Config.SMTPMail        //ex: "John.Doe@gmail.com"
-	smtpPassword := s.Config.SMTPPassword // ex: "ieiemcjdkejspqz"
-	address := s.Config.SMTPAddress
+	fromEmail := s.config.SMTPMail        //ex: "John.Doe@gmail.com"
+	smtpPassword := s.config.SMTPPassword // ex: "ieiemcjdkejspqz"
+	address := s.config.SMTPAddress
 	to := []string{req.Email}
 
 	subject := "Subject: The Monkeys Account Recovery\n"
@@ -163,7 +176,7 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	message := []byte(subject + mime + emailBody)
 
-	auth := smtp.PlainAuth("", fromEmail, smtpPassword, s.Config.SMTPHost)
+	auth := smtp.PlainAuth("", fromEmail, smtpPassword, s.config.SMTPHost)
 
 	if err = smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
 		logrus.Errorf("error occurred while sending verification email, error: %+v", err)
@@ -180,11 +193,11 @@ func (s *Server) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) 
 	}, nil
 }
 
-func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
 	var pwr models.PasswordReset
 	var user models.TheMonkeysUser
 	var timeOut string
-	if err := s.H.Psql.QueryRow("SELECT email,recovery_hash, time_out FROM password_resets WHERE email=$1;", req.GetEmail()).
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT email,recovery_hash, time_out FROM password_resets WHERE email=$1;", req.GetEmail()).
 		Scan(&pwr.Email, &pwr.RecoveryHash, &timeOut); err != nil {
 		logrus.Errorf("cannot get the password recovery details, error: %v", err)
 		return nil, err
@@ -206,13 +219,13 @@ func (s *Server) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*
 		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
 	}
 
-	if err := s.H.Psql.QueryRow("SELECT id, email FROM users WHERE email=$1;", req.GetEmail()).
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT id, email FROM users WHERE email=$1;", req.GetEmail()).
 		Scan(&user.Id, &user.Email); err != nil {
 		logrus.Errorf("cannot get the password recovery details, error: %v", err)
 		return nil, err
 	}
 
-	token, _ := s.Jwt.GenerateToken(user)
+	token, _ := s.jwt.GenerateToken(user)
 	return &pb.ResetPasswordRes{
 		Status: 200,
 		Error:  "",

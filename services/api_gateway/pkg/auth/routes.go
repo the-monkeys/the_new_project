@@ -63,6 +63,9 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 		Password:  body.Password,
 	})
 
+	logrus.Infof("Response: %+v", res)
+	logrus.Infof("Error: %+v", err)
+
 	if err != nil {
 		asc.Log.Errorf("rpc auth server returned error, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/config"
@@ -17,10 +16,10 @@ func main() {
 	cfg, err := config.LoadConfig()
 
 	if err != nil {
-		log.Fatalln("Failed at config", err)
+		logrus.Fatalf("cannot load auth service config, error: %v", err)
 	}
 
-	h := db.Init(cfg.DBUrl)
+	dbHandler, err := db.NewAuthDBHandler(cfg.DBUrl)
 
 	jwt := utils.JwtWrapper{
 		SecretKey:       cfg.JWTSecretKey,
@@ -29,23 +28,18 @@ func main() {
 	}
 
 	lis, err := net.Listen("tcp", cfg.AuthAddr)
-
 	if err != nil {
-		log.Fatalln("Failed to listing:", err)
+		logrus.Fatalf("auth service cannot listen at address %v, error: %v", cfg.AuthAddr, err)
 	}
 
-	s := services.Server{
-		H:      h,
-		Jwt:    jwt,
-		Config: cfg,
-	}
+	authServer := services.NewAuthServer(dbHandler, jwt, cfg)
 
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterAuthServiceServer(grpcServer, &s)
+	pb.RegisterAuthServiceServer(grpcServer, authServer)
 
 	logrus.Info("starting the authentication server at address: ", cfg.AuthAddr)
 	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalln("Failed to serve:", err)
+		logrus.Fatalf("gRPC auth server cannot start, error: %v", err)
 	}
 }
