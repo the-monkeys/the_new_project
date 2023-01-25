@@ -101,32 +101,73 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.TheMonkeysUser
 
-	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
-		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
+	// Check if the email exists
+	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Email, &user.Password)
+	if err != nil {
+		logrus.Errorf("cannot login as the email %s doesn't exist, error: %+v", req.Email, err)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
-			Error:  "user doesn't exists",
+			Error:  "the email isn't registered",
 		}, nil
 	}
 
-	match := utils.CheckPasswordHash(req.Password, user.Password)
-
-	if !match {
-		logrus.Infof("incorrect password given for the user containing email: %s", req.Email)
+	logrus.Infof("USER: %+v", user)
+	// Check if the password match
+	if !utils.CheckPasswordHash(req.Password, user.Password) {
+		logrus.Errorf("cannot login as the email/password doesn't match for: %s", req.Email)
 		return &pb.LoginResponse{
 			Status: http.StatusBadRequest,
-			Error:  "incorrect password",
+			Error:  "the email/password incorrect",
 		}, nil
 	}
 
-	token, _ := s.jwt.GenerateToken(user)
+	// Generate and return token
+	token, err := s.jwt.GenerateToken(user)
+	if err != nil {
+		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		return &pb.LoginResponse{
+			Status: http.StatusBadRequest,
+			Error:  "the email/password incorrect",
+		}, nil
+	}
 
-	logrus.Infof("user containing email: %s, can successfully login", req.Email)
+	logrus.Infof("user containing email: %s, has been assigned a token", req.Email)
 	return &pb.LoginResponse{
 		Status: http.StatusOK,
 		Token:  token,
 	}, nil
 }
+
+// func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+// 	var user models.TheMonkeysUser
+
+// 	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
+// 		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
+// 		return &pb.LoginResponse{
+// 			Status: http.StatusNotFound,
+// 			Error:  "user doesn't exists",
+// 		}, nil
+// 	}
+
+// 	match := utils.CheckPasswordHash(req.Password, user.Password)
+
+// 	if !match {
+// 		logrus.Infof("incorrect password given for the user containing email: %s", req.Email)
+// 		return &pb.LoginResponse{
+// 			Status: http.StatusBadRequest,
+// 			Error:  "incorrect password",
+// 		}, nil
+// 	}
+
+// 	token, _ := s.jwt.GenerateToken(user)
+
+// 	logrus.Infof("user containing email: %s, can successfully login", req.Email)
+// 	return &pb.LoginResponse{
+// 		Status: http.StatusOK,
+// 		Token:  token,
+// 	}, nil
+// }
 
 func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	claims, err := s.jwt.ValidateToken(req.Token)

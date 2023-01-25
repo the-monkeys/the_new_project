@@ -64,9 +64,6 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 		Password:  body.Password,
 	})
 
-	logrus.Infof("Response: %+v", res)
-	logrus.Infof("Error: %+v", err)
-
 	if err != nil {
 		asc.Log.Errorf("rpc auth server returned error, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
@@ -107,13 +104,13 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 		return
 	}
 
-	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+	if res.Status == http.StatusNotFound {
 		asc.Log.Errorf("user containing email: %s, doesn't exists", body.Email)
 		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
 		return
 	}
 
-	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+	if res.Status == http.StatusBadRequest {
 		asc.Log.Errorf("incorrect password given for the user containing email: %s", body.Email)
 		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
 		return
