@@ -112,7 +112,6 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 		}, nil
 	}
 
-	logrus.Infof("USER: %+v", user)
 	// Check if the password match
 	if !utils.CheckPasswordHash(req.Password, user.Password) {
 		logrus.Errorf("cannot login as the email/password doesn't match for: %s", req.Email)
@@ -171,8 +170,8 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 
 func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	claims, err := s.jwt.ValidateToken(req.Token)
-
 	if err != nil {
+		logrus.Errorf("cannot validate the json token, error: %v", err)
 		return &pb.ValidateResponse{
 			Status: http.StatusBadRequest,
 			Error:  err.Error(),
@@ -180,13 +179,22 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 	}
 
 	var user models.TheMonkeysUser
-
-	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
+	// Check if the email exists
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT email, password FROM the_monkeys_user WHERE email=$1;", claims.Email).
+		Scan(&user.Email, &user.Password); err != nil {
+		logrus.Errorf("cannot validate token as the email %s doesn't exist, error: %+v", claims.Email, err)
 		return &pb.ValidateResponse{
 			Status: http.StatusNotFound,
 			Error:  "User not found",
 		}, nil
 	}
+
+	// if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
+	// 	return &pb.ValidateResponse{
+	// 		Status: http.StatusNotFound,
+	// 		Error:  "User not found",
+	// 	}, nil
+	// }
 
 	return &pb.ValidateResponse{
 		Status: http.StatusOK,

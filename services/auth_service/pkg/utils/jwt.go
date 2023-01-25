@@ -6,6 +6,7 @@ import (
 
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	"github.com/golang-jwt/jwt"
+	"github.com/sirupsen/logrus"
 )
 
 type JwtWrapper struct {
@@ -49,18 +50,19 @@ func (w *JwtWrapper) ValidateToken(signedToken string) (claims *jwtClaims, err e
 			return []byte(w.SecretKey), nil
 		},
 	)
-
 	if err != nil {
+		logrus.Errorf("cannot parse with claims the json token, error: %v", err)
 		return
 	}
 
 	claims, ok := token.Claims.(*jwtClaims)
-
 	if !ok {
+		logrus.Errorf("cannot parse jwt claims, error: %v", err)
 		return nil, errors.New("Couldn't parse claims")
 	}
 
 	if claims.ExpiresAt < time.Now().Local().Unix() {
+		logrus.Errorf("token expired already, error: %v", err)
 		return nil, errors.New("JWT is expired")
 	}
 
