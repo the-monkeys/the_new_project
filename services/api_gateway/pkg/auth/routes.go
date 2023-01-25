@@ -24,6 +24,7 @@ func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
 	}
 
+	logrus.Infof("gateway is dialing to the auth server at: %v", cfg.AuthSvcUrl)
 	return pb.NewAuthServiceClient(cc)
 }
 
@@ -69,6 +70,11 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 	if err != nil {
 		asc.Log.Errorf("rpc auth server returned error, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	if res.Status == http.StatusConflict {
+		ctx.JSON(http.StatusConflict, nil)
 		return
 	}
 

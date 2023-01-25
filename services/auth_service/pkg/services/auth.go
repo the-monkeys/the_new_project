@@ -13,6 +13,7 @@ import (
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/pb"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/utils"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,33 +37,66 @@ func NewAuthServer(dbCli *db.AuthDBHandler, jwt utils.JwtWrapper, config config.
 func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var user models.TheMonkeysUser
 
-	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
+	// Check if the user exists with the same email id return conflict
+	err := s.dbCli.PsqlClient.QueryRow("SELECT email FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Email)
+	if err == nil {
+		logrus.Errorf("cannot register the user, as the email %s is existing already", req.Email)
 		return &pb.RegisterResponse{
 			Status: http.StatusConflict,
-			Error:  "email already exists",
+			Error:  "the email is already registered",
 		}, nil
 	}
 
-	return &pb.RegisterResponse{
-		Status: http.StatusOK,
-		Error:  "no error",
-	}, nil
-
-	user.FirstName = req.FirstName
-	user.LastName = req.LastName
-	user.Email = req.Email
+	user.UUID = uuid.NewString()
+	user.FirstName = req.GetFirstName()
+	user.LastName = req.GetLastName()
+	user.Email = req.GetEmail()
 	user.Password = utils.HashPassword(req.Password)
 	user.CreateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.IsActive = true
 	user.Role = int32(pb.UserRole_USER_NORMAL)
 
-	s.dbCli.GormClient.Create(&user)
-
-	return &pb.RegisterResponse{
-		Status: http.StatusCreated,
-	}, nil
+	logrus.Infof("registering the user with email %v", req.Email)
+	// else create the user
+	if err := s.dbCli.RegisterUser(user); err != nil {
+		return nil, err
+	}
+	logrus.Infof("user %s is successfully registered.", user.Email)
+	return &pb.RegisterResponse{Status: http.StatusOK, Error: "registered successfully"}, nil
 }
+
+// func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+// 	var user models.TheMonkeysUser
+
+// 	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
+// 		return &pb.RegisterResponse{
+// 			Status: http.StatusConflict,
+// 			Error:  "email already exists",
+// 		}, nil
+// 	}
+
+// 	return &pb.RegisterResponse{
+// 		Status: http.StatusOK,
+// 		Error:  "no error",
+// 	}, nil
+
+// 	user.FirstName = req.FirstName
+// 	user.LastName = req.LastName
+// 	user.Email = req.Email
+// 	user.Password = utils.HashPassword(req.Password)
+// 	user.CreateTime = time.Now().Format(common.DATE_TIME_FORMAT)
+// 	user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
+// 	user.IsActive = true
+// 	user.Role = int32(pb.UserRole_USER_NORMAL)
+
+// 	s.dbCli.GormClient.Create(&user)
+
+// 	return &pb.RegisterResponse{
+// 		Status: http.StatusCreated,
+// 	}, nil
+// }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.TheMonkeysUser
