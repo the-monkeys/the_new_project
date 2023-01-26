@@ -24,6 +24,7 @@ func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
 	}
 
+	logrus.Infof("gateway is dialing to the auth server at: %v", cfg.AuthSvcUrl)
 	return pb.NewAuthServiceClient(cc)
 }
 
@@ -69,6 +70,11 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 		return
 	}
 
+	if res.Status == http.StatusConflict {
+		ctx.JSON(http.StatusConflict, nil)
+		return
+	}
+
 	ctx.JSON(int(res.Status), &res)
 
 }
@@ -98,13 +104,13 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 		return
 	}
 
-	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+	if res.Status == http.StatusNotFound {
 		asc.Log.Errorf("user containing email: %s, doesn't exists", body.Email)
 		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
 		return
 	}
 
-	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+	if res.Status == http.StatusBadRequest {
 		asc.Log.Errorf("incorrect password given for the user containing email: %s", body.Email)
 		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
 		return

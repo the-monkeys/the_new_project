@@ -21,7 +21,7 @@ func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}
-
+	logrus.Infof("gateway is dialing to the user server at: %v", cfg.UserSvcUrl)
 	return pb.NewUserServiceClient(cc)
 }
 

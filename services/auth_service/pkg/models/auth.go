@@ -1,21 +1,23 @@
 package models
 
-import "time"
+import (
+	"time"
 
-type User struct {
-	Id          int64  `json:"id" gorm:"primaryKey"`
-	FirstName   string `json:"first_name"`
-	LastName    string `json:"last_name"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	ProfilePic  []byte `json:"profilePic,omitempty"`
-	CreateTime  string `json:"createTime,omitempty"`
-	UpdateTime  string `json:"updateTime,omitempty"`
-	IsActive    bool   `json:"isActive,omitempty"`
-	Role        int32  `json:"role,omitempty"`
-	LastLogin   string `json:"lastLogin,omitempty"`
-	CountryCode string `json:"country_code"`
-	MobileNo    string `json:"mobile_no"`
+	"gorm.io/gorm"
+)
+
+type TheMonkeysUser struct {
+	gorm.Model
+	Id         int64  `json:"id" gorm:"primaryKey"`
+	UUID       string `json:"unique_id"`
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	CreateTime string `json:"create_time,omitempty"`
+	UpdateTime string `json:"update_time,omitempty"`
+	IsActive   bool   `json:"is_active,omitempty"`
+	Role       int32  `json:"role,omitempty"`
 }
 
 type PasswordReset struct {
