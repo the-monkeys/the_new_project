@@ -21,4 +21,3 @@ done
 
 
 # restart services to load the new code changes
-sudo systemctl restart microservice_name 
