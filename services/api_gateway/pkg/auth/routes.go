@@ -24,7 +24,7 @@ func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
 	}
 
-	logrus.Infof("gateway is dialing to the auth server at: %v", cfg.AuthSvcUrl)
+	logrus.Infof("The Gateway is dialing to auth gRPC server at: %v", cfg.AuthSvcUrl)
 	return pb.NewAuthServiceClient(cc)
 }
 
@@ -36,8 +36,8 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes := router.Group("/api/v1/auth")
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
-	routes.POST("/forgot_pass", asc.ForgotPassword)
-	routes.GET("/resetpassword", asc.ResetPassword)
+	routes.POST("/forgot-pass", asc.ForgotPassword)
+	routes.GET("/reset-password", asc.ResetPassword)
 
 	return asc
 }

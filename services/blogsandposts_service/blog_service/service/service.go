@@ -172,7 +172,7 @@ func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq
 }
 
 func (blog *BlogService) EditBlogById(ctx context.Context, req *pb.EditBlogRequest) (*pb.EditBlogResponse, error) {
-	blog.logger.Info("the user has requested to edit the post %v", req.GetId())
+	blog.logger.Infof("the user has requested to edit the post %v", req.GetId())
 
 	// Lower cased tags and trim spaces
 	for i, v := range req.Tags {
@@ -240,12 +240,12 @@ func (blog *BlogService) DeleteBlogById(ctx context.Context, req *pb.DeleteBlogB
 
 	deleteResponse, err := delete.Do(context.Background(), blog.osClient.client)
 	if err != nil {
-		blog.logger.Error("cannot delete the blog %s, error: %v", req.Id, err)
+		blog.logger.Errorf("cannot delete the blog %s, error: %v", req.Id, err)
 		return nil, err
 	}
 
 	if deleteResponse.StatusCode == http.StatusNotFound {
-		blog.logger.Error("cannot find the blog %s, error: %v", req.Id, err)
+		blog.logger.Errorf("cannot find the blog %s, error: %v", req.Id, err)
 		return nil, err
 	}
 

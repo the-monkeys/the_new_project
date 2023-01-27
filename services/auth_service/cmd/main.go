@@ -29,7 +29,7 @@ func main() {
 
 	lis, err := net.Listen("tcp", cfg.AuthAddr)
 	if err != nil {
-		logrus.Fatalf("auth service cannot listen at address %v, error: %v", cfg.AuthAddr, err)
+		logrus.Fatalf("auth service cannot listen at address %s, error: %v", cfg.AuthAddr, err)
 	}
 
 	authServer := services.NewAuthServer(dbHandler, jwt, cfg)

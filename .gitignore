@@ -16,6 +16,9 @@
 
 ./api_gateway/config/dev.env
 
-.test/*
+
+test/article1.json
 
 Makefile
+
+certs/*.pem
