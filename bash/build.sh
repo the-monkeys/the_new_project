@@ -14,9 +14,11 @@ do
     IFS=' '
     read -ra ADDR <<<$microservice_name
 
+    echo "Build the $microservice_name"
     (cd "$dir" && go build -o "/usr/local/bin/the_monkeys/$microservice_name"); 
 done
 
 
 
 # restart services to load the new code changes
+sudo systemctl restart microservice_name 
