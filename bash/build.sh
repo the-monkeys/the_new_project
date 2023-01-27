@@ -26,5 +26,8 @@ done
 
 
 # restart services to load the new code changes
+<<<<<<< HEAD
 sudo systemctl restart microservice_name 
 >>>>>>>> 9e7d540 (SQL script ready):bash/build.sh
+=======
+>>>>>>> 08c6600 (Build script)
