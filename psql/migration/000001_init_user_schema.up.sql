@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS the_monkeys_user
     role integer,
     last_login text,
     country_code text,
-    mobile_no text ,
+    mobile_no text,
     about text,
     instagram text,
     twitter text,

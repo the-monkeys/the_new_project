@@ -17,7 +17,7 @@
 ./api_gateway/config/dev.env
 
 
-test/article1.json
+test/*.json
 
 
 env.sh
