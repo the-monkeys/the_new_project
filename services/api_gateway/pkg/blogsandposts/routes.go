@@ -96,7 +96,6 @@ func (svc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
 			logrus.Errorf("cannot get the stream data, error: %+v", err)
 		}
 
-		logrus.Infof("Got response: %+v", resp)
 		response = append(response, resp)
 	}
 
