@@ -24,7 +24,7 @@ func NewUserServiceClient(cfg *config.Config) pb.BlogsAndPostServiceClient {
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}
-	logrus.Infof("gateway is dialing to the blog_and_post_post server at: %v", cfg.BlogAndPostSvcURL)
+	logrus.Infof("The Gateway is dialing to post gRPC server at: %v", cfg.BlogAndPostSvcURL)
 	return pb.NewBlogsAndPostServiceClient(cc)
 }
 

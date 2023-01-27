@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -72,11 +71,11 @@ func (s *Server) start(ctx context.Context) {
 	}
 	httpPort, _ := strconv.Atoi(os.Getenv("HTTP_PORT"))
 	if httpPort == 0 {
-		httpPort = 8080
+		httpPort = 5000
 	}
 	httpsPort, _ := strconv.Atoi(os.Getenv("HTTPS_PORT"))
 	if httpsPort == 0 {
-		httpsPort = 8443
+		httpsPort = 5001
 	}
 
 	// TLS certificate and key
@@ -121,7 +120,7 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		fmt.Printf("HTTP server listening on http://%s:%d\n", bindAddr, httpPort)
+		logrus.Printf("HTTP server listening at http://%s:%d\n", bindAddr, httpPort)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {
@@ -132,7 +131,7 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 	// Start the HTTPS server in a background goroutine
 	if enableTLS {
 		go func() {
-			fmt.Printf("HTTPS server listening on https://%s:%d\n", bindAddr, httpsPort)
+			logrus.Printf("HTTPS server listening at https://%s:%d\n", bindAddr, httpsPort)
 			err := httpsSrv.ListenAndServeTLS(tlsCert, tlsKey)
 			if err != http.ErrServerClosed {
 				panic(err)
@@ -160,9 +159,9 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 	shutdownCancel()
 	// Log the errors (could be context canceled)
 	if errHttp != nil {
-		log.Println("HTTP server shutdown error:", errHttp)
+		logrus.Println("HTTP server shutdown error:", errHttp)
 	}
 	if errHttps != nil {
-		log.Println("HTTPS server shutdown error:", errHttps)
+		logrus.Println("HTTPS server shutdown error:", errHttps)
 	}
 }
