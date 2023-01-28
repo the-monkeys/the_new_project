@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS the_monkeys_post
     html_content text NOT NULL,
     raw_content text NOT NULL,
     author_name text NOT NULL,
-    author_id bigint,
+    author_id bigint NOT NULL,
     published boolean,
     tags text [],
     create_time text,
@@ -16,5 +16,10 @@ CREATE TABLE IF NOT EXISTS the_monkeys_post
     folder_path text,
     
 
-    CONSTRAINT users_pkey PRIMARY KEY (id)
+    CONSTRAINT blog_pkey PRIMARY KEY (id),
+
+    CONSTRAINT fk_author_id FOREIGN KEY (author_id)
+        REFERENCES the_monkeys_user(id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION 
 );
