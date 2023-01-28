@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS the_monkeys_post
     create_time text,
     update_time text,
     can_edit boolean,
-    content_ownership text,
+    content_ownership int,
     folder_path text,
     
 
