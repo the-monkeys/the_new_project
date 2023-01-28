@@ -19,6 +19,6 @@
 
 test/*.json
 
-Makefile
 
+env.sh
 certs/*.pem

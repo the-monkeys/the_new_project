@@ -10,6 +10,7 @@ import (
 	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
+	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/psql"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/utils"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,7 @@ import (
 
 type BlogService struct {
 	osClient openSearchClient
+	pgClient *psql.PostDBHandler
 	logger   *logrus.Logger
 	pb.UnimplementedBlogsAndPostServiceServer
 }

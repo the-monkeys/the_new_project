@@ -40,7 +40,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.Use(mware.AuthRequired)
 
-	routes.POST("/create", blogCli.CreateABlog)
+	routes.POST("/", blogCli.CreateABlog)
 	routes.PUT("/edit/:id", blogCli.EditArticles)
 	routes.PATCH("/edit/:id", blogCli.EditArticles)
 	routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
