@@ -89,6 +89,10 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequ
 
 func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostService_Get100BlogsServer) error {
 	searchResponse, err := blog.osClient.GetLast100Articles()
+	if err != nil {
+		blog.logger.Errorf("cannot get the blogs, error: %v", err)
+		return err
+	}
 	var result map[string]interface{}
 
 	// logrus.Infof("Response: %+v", searchResponse)
@@ -254,6 +258,11 @@ func (blog *BlogService) DeleteBlogById(ctx context.Context, req *pb.DeleteBlogB
 
 func (blog *BlogService) GetBlogsByTag(req *pb.GetBlogsByTagReq, stream pb.BlogsAndPostService_GetBlogsByTagServer) error {
 	searchResponse, err := blog.osClient.GetLast100ArticlesByTag(req.GetTagName())
+	if err != nil {
+		blog.logger.Errorf("cannot get the blogs by tag name %s, error: %v", req.TagName, err)
+		return err
+	}
+
 	var result map[string]interface{}
 
 	// logrus.Infof("Response: %+v", searchResponse)
