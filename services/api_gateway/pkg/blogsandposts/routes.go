@@ -37,6 +37,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes := router.Group("/api/v1/post")
 	routes.GET("/", blogCli.Get100Blogs)
 	routes.GET("/:id", blogCli.GetArticleById)
+	routes.GET("/tag", blogCli.Get100PostsByTags)
 
 	routes.Use(mware.AuthRequired)
 
@@ -77,7 +78,7 @@ func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
 }
 
 func (svc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
-	logrus.Infof("the page is visited from ip: %s", "192.168.0.3")
+	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
 
 	stream, err := svc.Client.Get100Blogs(context.Background(), &emptypb.Empty{})
 	if err != nil {
@@ -158,4 +159,41 @@ func (svc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, res)
+}
+
+func (svc *BlogServiceClient) Get100PostsByTags(ctx *gin.Context) {
+	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
+
+	reqObj := Tag{}
+
+	if err := ctx.BindJSON(&reqObj); err != nil {
+		logrus.Errorf("invalid body, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	stream, err := svc.Client.GetBlogsByTag(context.Background(), &pb.GetBlogsByTagReq{
+		TagName: reqObj.TagName,
+	})
+
+	if err != nil {
+		logrus.Errorf("cannot connect to article stream rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	response := []*pb.GetBlogsResponse{}
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logrus.Errorf("cannot get the stream data, error: %+v", err)
+		}
+
+		response = append(response, resp)
+	}
+
+	ctx.JSON(http.StatusCreated, response)
 }

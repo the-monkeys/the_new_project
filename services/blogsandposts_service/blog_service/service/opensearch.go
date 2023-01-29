@@ -117,3 +117,29 @@ func (oso *openSearchClient) GetArticleById(ctx context.Context, id string) (*op
 
 	return searchResponse, nil
 }
+
+// GetLast100Articles gets us last 100 articles created
+func (oso *openSearchClient) GetLast100ArticlesByTag(tag string) (*opensearchapi.Response, error) {
+	oso.log.Infof("getting last 100 articles by tag: %s", tag)
+
+	// Search for the document.
+	content := strings.NewReader(getLast100ArticlesByTag(tag))
+
+	search := opensearchapi.SearchRequest{
+		Index: []string{utils.OpensearchArticleIndex},
+		Body:  content,
+	}
+
+	searchResponse, err := search.Do(context.Background(), oso.client)
+	if err != nil {
+		oso.log.Errorf("failed to search document, error: %+v", err)
+		return nil, err
+	}
+
+	if searchResponse.IsError() {
+		oso.log.Errorf("error fetching 100 articles, search response: %+v", searchResponse)
+		return searchResponse, err
+	}
+
+	return searchResponse, nil
+}

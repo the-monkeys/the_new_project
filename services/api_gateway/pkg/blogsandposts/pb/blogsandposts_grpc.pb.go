@@ -28,6 +28,7 @@ type BlogsAndPostServiceClient interface {
 	GetBlogById(ctx context.Context, in *GetBlogByIdRequest, opts ...grpc.CallOption) (*GetBlogByIdResponse, error)
 	EditBlogById(ctx context.Context, in *EditBlogRequest, opts ...grpc.CallOption) (*EditBlogResponse, error)
 	DeleteBlogById(ctx context.Context, in *DeleteBlogByIdRequest, opts ...grpc.CallOption) (*DeleteBlogByIdResponse, error)
+	GetBlogsByTag(ctx context.Context, in *GetBlogsByTagReq, opts ...grpc.CallOption) (BlogsAndPostService_GetBlogsByTagClient, error)
 }
 
 type blogsAndPostServiceClient struct {
@@ -106,6 +107,38 @@ func (c *blogsAndPostServiceClient) DeleteBlogById(ctx context.Context, in *Dele
 	return out, nil
 }
 
+func (c *blogsAndPostServiceClient) GetBlogsByTag(ctx context.Context, in *GetBlogsByTagReq, opts ...grpc.CallOption) (BlogsAndPostService_GetBlogsByTagClient, error) {
+	stream, err := c.cc.NewStream(ctx, &BlogsAndPostService_ServiceDesc.Streams[1], "/auth.BlogsAndPostService/GetBlogsByTag", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &blogsAndPostServiceGetBlogsByTagClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type BlogsAndPostService_GetBlogsByTagClient interface {
+	Recv() (*GetBlogsResponse, error)
+	grpc.ClientStream
+}
+
+type blogsAndPostServiceGetBlogsByTagClient struct {
+	grpc.ClientStream
+}
+
+func (x *blogsAndPostServiceGetBlogsByTagClient) Recv() (*GetBlogsResponse, error) {
+	m := new(GetBlogsResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // BlogsAndPostServiceServer is the server API for BlogsAndPostService service.
 // All implementations must embed UnimplementedBlogsAndPostServiceServer
 // for forward compatibility
@@ -115,6 +148,7 @@ type BlogsAndPostServiceServer interface {
 	GetBlogById(context.Context, *GetBlogByIdRequest) (*GetBlogByIdResponse, error)
 	EditBlogById(context.Context, *EditBlogRequest) (*EditBlogResponse, error)
 	DeleteBlogById(context.Context, *DeleteBlogByIdRequest) (*DeleteBlogByIdResponse, error)
+	GetBlogsByTag(*GetBlogsByTagReq, BlogsAndPostService_GetBlogsByTagServer) error
 	mustEmbedUnimplementedBlogsAndPostServiceServer()
 }
 
@@ -136,6 +170,9 @@ func (UnimplementedBlogsAndPostServiceServer) EditBlogById(context.Context, *Edi
 }
 func (UnimplementedBlogsAndPostServiceServer) DeleteBlogById(context.Context, *DeleteBlogByIdRequest) (*DeleteBlogByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlogById not implemented")
+}
+func (UnimplementedBlogsAndPostServiceServer) GetBlogsByTag(*GetBlogsByTagReq, BlogsAndPostService_GetBlogsByTagServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetBlogsByTag not implemented")
 }
 func (UnimplementedBlogsAndPostServiceServer) mustEmbedUnimplementedBlogsAndPostServiceServer() {}
 
@@ -243,6 +280,27 @@ func _BlogsAndPostService_DeleteBlogById_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogsAndPostService_GetBlogsByTag_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetBlogsByTagReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(BlogsAndPostServiceServer).GetBlogsByTag(m, &blogsAndPostServiceGetBlogsByTagServer{stream})
+}
+
+type BlogsAndPostService_GetBlogsByTagServer interface {
+	Send(*GetBlogsResponse) error
+	grpc.ServerStream
+}
+
+type blogsAndPostServiceGetBlogsByTagServer struct {
+	grpc.ServerStream
+}
+
+func (x *blogsAndPostServiceGetBlogsByTagServer) Send(m *GetBlogsResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // BlogsAndPostService_ServiceDesc is the grpc.ServiceDesc for BlogsAndPostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -271,6 +329,11 @@ var BlogsAndPostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "Get100Blogs",
 			Handler:       _BlogsAndPostService_Get100Blogs_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetBlogsByTag",
+			Handler:       _BlogsAndPostService_GetBlogsByTag_Handler,
 			ServerStreams: true,
 		},
 	},

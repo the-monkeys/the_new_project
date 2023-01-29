@@ -100,3 +100,20 @@ func updateArticleById(id, title, content string, tags []string) string {
 			}
 		}`, id, title, string(cont), string(bx), time.Now().Format("2006-01-02T15:04:05Z07:00"))
 }
+
+// getLast100Articles basically picks recent 100 published articles skipping the drafts
+func getLast100ArticlesByTag(tag string) string {
+	return fmt.Sprintf(`{
+		"size": 100,
+		"sort": {
+			"create_time": {
+				"order": "desc"
+			}
+		},
+		"query": {
+			"term": {
+				"tags": "%s"
+			}
+		}
+	}`, tag)
+}

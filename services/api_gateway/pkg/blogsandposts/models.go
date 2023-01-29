@@ -14,3 +14,7 @@ type EditArticleRequestBody struct {
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
 }
+
+type Tag struct {
+	TagName string `json:"tag_name"`
+}
