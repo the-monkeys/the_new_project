@@ -85,11 +85,11 @@ curl --location --request GET 'http://localhost:5001/api/v1/article/a0b81286-bfd
 
 ## Edit Article 
 ```
-curl --location --request PATCH 'http://localhost:5001/api/v1/article/post/a0b81286-bfdd-49f1-8bb3-56ace2918736' \
+curl --location --request PATCH 'https://localhost:5001/api/v1/post/edit/d9f05f8b-c8d6-4b02-b095-c2ec179880af' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDY1Mzk1MTAsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJmb3VyQGdtYWlsLmNvbSJ9.VCYwSrHm8H5s2I8c9_InZjSwWZMSKVECRN8z1P0irFo' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDQ5MDAzMzksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MywiRW1haWwiOiJraGFzYmFAbWFpbC5jb20ifQ.p8oKo8Ny1cSh67p_C7_oagTNdnIUpQxosz1sUSG4--k' \
 --data-raw '{
-    "title": "Changed title 11"
+    "title": "alpha@beta.com"
 
 }'
 ```

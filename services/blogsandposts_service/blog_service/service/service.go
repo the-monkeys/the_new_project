@@ -89,6 +89,10 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequ
 
 func (blog *BlogService) Get100Blogs(req *emptypb.Empty, stream pb.BlogsAndPostService_Get100BlogsServer) error {
 	searchResponse, err := blog.osClient.GetLast100Articles()
+	if err != nil {
+		blog.logger.Errorf("cannot get the blogs, error: %v", err)
+		return err
+	}
 	var result map[string]interface{}
 
 	// logrus.Infof("Response: %+v", searchResponse)
@@ -250,4 +254,41 @@ func (blog *BlogService) DeleteBlogById(ctx context.Context, req *pb.DeleteBlogB
 	}
 
 	return &pb.DeleteBlogByIdResponse{Status: int64(deleteResponse.StatusCode)}, nil
+}
+
+func (blog *BlogService) GetBlogsByTag(req *pb.GetBlogsByTagReq, stream pb.BlogsAndPostService_GetBlogsByTagServer) error {
+	searchResponse, err := blog.osClient.GetLast100ArticlesByTag(req.GetTagName())
+	if err != nil {
+		blog.logger.Errorf("cannot get the blogs by tag name %s, error: %v", req.TagName, err)
+		return err
+	}
+
+	var result map[string]interface{}
+
+	// logrus.Infof("Response: %+v", searchResponse)
+	decoder := json.NewDecoder(searchResponse.Body)
+	if err := decoder.Decode(&result); err != nil {
+		blog.logger.Error("error while decoding, error", err)
+	}
+
+	bx, err := json.MarshalIndent(result, "", "    ")
+	if err != nil {
+		blog.logger.Errorf("cannot marshal map[string]interface{}, error: %+v", err)
+		return err
+	}
+
+	arts := models.Last100Articles{}
+	if err := json.Unmarshal(bx, &arts); err != nil {
+		blog.logger.Errorf("cannot unmarshal byte slice, error: %+v", err)
+		return err
+	}
+
+	articles := parseToStruct(arts)
+	for _, article := range articles {
+		if err := stream.Send(&article); err != nil {
+			blog.logger.Errorf("error while sending stream, error %+v", err)
+		}
+	}
+
+	return nil
 }

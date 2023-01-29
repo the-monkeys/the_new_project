@@ -28,6 +28,10 @@ func main() {
 	logger := logrus.New()
 
 	osClient, err := service.NewOpenSearchClient(cfg.OSAddress, cfg.OSUsername, cfg.OSPassword, logger)
+	if err != nil {
+		logger.Fatalf("cannot get the opensearch client, error: %v", err)
+	}
+
 	blogService := service.NewBlogService(*osClient, logger)
 
 	grpcServer := grpc.NewServer()

@@ -19,6 +19,7 @@
 
 test/article1.json
 
-Makefile
 
+env.sh
 certs/*.pem
+test/blogs.json
