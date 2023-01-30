@@ -395,3 +395,41 @@ func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*
 	}, nil
 
 }
+
+func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.EmailVerificationReq) (*pb.EmailVerificationRes, error) {
+	if req.Email == "" {
+		return nil, common.BadRequest
+	}
+
+	var user models.TheMonkeysUser
+	var timeOut string
+
+	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
+		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
+		Scan(&user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
+		logrus.Errorf("cannot get the user details to verify email, error: %v", err)
+		return nil, err
+	}
+
+	logrus.Infof("generating verification email token for: %s", req.GetEmail())
+	hash := string(utils.GenHash())
+	encHash := utils.HashPassword(hash)
+
+	user.EmailVerificationToken = encHash
+	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
+
+	if err := s.dbCli.UpdateEmailVerToken(user); err != nil {
+		return nil, err
+	}
+
+	logrus.Infof("Sending verification email to: %s", req.GetEmail())
+	if err := s.SendMail(user.Email, hash); err != nil {
+		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
+		return nil, err
+	}
+
+	return &pb.EmailVerificationRes{
+		Status:  http.StatusOK,
+		Message: "Check your email and click on the verify link",
+	}, nil
+}

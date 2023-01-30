@@ -15,3 +15,7 @@ type RegisterRequestBody struct {
 type ForgetPass struct {
 	Email string `json:"email"`
 }
+
+type VerifyEmail struct {
+	Email string `json:"email"`
+}
