@@ -58,10 +58,33 @@ message ResetPasswordRes {
   string token = 3;
 }
 
+message VerifyEmailReq {
+  string email = 1;
+  string token = 3;
+}
+
+message VerifyEmailRes {
+  int64 status = 1;
+  string error = 2;
+  string token = 3;
+}
+
+message EmailVerificationReq {
+  string email = 1;
+}
+
+message EmailVerificationRes {
+  int64 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
+  rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
+  rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
 }
