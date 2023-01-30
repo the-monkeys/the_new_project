@@ -48,6 +48,9 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 		}, nil
 	}
 
+	hash := string(utils.GenHash())
+	encHash := utils.HashPassword(hash)
+
 	user.UUID = uuid.NewString()
 	user.FirstName = req.GetFirstName()
 	user.LastName = req.GetLastName()
@@ -57,12 +60,19 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.IsActive = true
 	user.Role = int32(pb.UserRole_USER_NORMAL)
+	user.EmailVerificationToken = encHash
+	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
 
 	logrus.Infof("registering the user with email %v", req.Email)
-	// else create the user
 	if err := s.dbCli.RegisterUser(user); err != nil {
 		return nil, err
 	}
+
+	// Send email verification main
+	if err = s.SendMail(user.Email, hash); err != nil {
+		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
+	}
+
 	logrus.Infof("user %s is successfully registered.", user.Email)
 	return &pb.RegisterResponse{Status: http.StatusOK, Error: "registered successfully"}, nil
 }
@@ -314,4 +324,74 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 		Error:  "",
 		Token:  token,
 	}, nil
+}
+
+func (srv *AuthServer) SendMail(email, verificationToken string) error {
+	fromEmail := srv.config.SMTPMail        //ex: "John.Doe@gmail.com"
+	smtpPassword := srv.config.SMTPPassword // ex: "ieiemcjdkejspqz"
+	address := srv.config.SMTPAddress
+	to := []string{email}
+
+	subject := "Subject: The Monkeys Account Recovery\n"
+
+	emailBody := utils.EmailVerificationHTML(email, verificationToken)
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	message := []byte(subject + mime + emailBody)
+
+	auth := smtp.PlainAuth("", fromEmail, smtpPassword, srv.config.SMTPHost)
+
+	if err := smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
+		logrus.Errorf("error occurred while sending verification email, error: %+v", err)
+		return nil
+
+	}
+
+	return nil
+}
+
+func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
+	var user models.TheMonkeysUser
+	var timeOut string
+	logrus.Infof("verifying email for: %s", req.GetEmail())
+
+	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
+		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
+		Scan(&user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
+		logrus.Errorf("cannot get the user details to verify email, error: %v", err)
+		return nil, err
+	}
+	timeTill, err := time.Parse(time.RFC3339, timeOut)
+
+	if timeTill.Before(time.Now()) {
+		logrus.Errorf("the token has already expired, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
+	}
+
+	// Verify reset token
+	if ok := utils.CheckPasswordHash(req.Token, user.EmailVerificationToken); !ok {
+		logrus.Errorf("the token didn't match, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
+	}
+
+	res, err := s.dbCli.PsqlClient.Exec("UPDATE the_monkeys_user SET email_verified=true WHERE email=$1;", req.GetEmail())
+	if err != nil {
+		logrus.Errorf("cannot update the verification details for %s, error: %v", req.Email, err)
+		return nil, err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %s, error: %v", user.Email, err)
+		return nil, err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", user.Email, err)
+		return nil, err
+	}
+
+	return &pb.VerifyEmailRes{
+		Status: 200,
+		Error:  "",
+	}, nil
+
 }

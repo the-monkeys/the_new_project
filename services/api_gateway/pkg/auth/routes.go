@@ -38,6 +38,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/login", asc.Login)
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.GET("/reset-password", asc.ResetPassword)
+	routes.GET("/verify-email", asc.VerifyPassword)
 
 	return asc
 }
@@ -160,6 +161,36 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	secretAny := ctx.Query("evpw")
 
 	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
+		Email: userAny,
+		Token: secretAny,
+	})
+
+	if err != nil {
+		asc.Log.Errorf("rpc auth server returned error: %v", err)
+		_ = ctx.AbortWithError(http.StatusForbidden, err)
+		return
+	}
+
+	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
+func (asc *ServiceClient) VerifyPassword(ctx *gin.Context) {
+	userAny := ctx.Query("user")
+	secretAny := ctx.Query("evpw")
+
+	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
 		Email: userAny,
 		Token: secretAny,
 	})

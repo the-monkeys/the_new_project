@@ -17,4 +17,4 @@ sql-gen:
 
 # Keeping temproraily as it's the local configuration.
 migrate-up:
-	migrate -path db -database "postgresql://user:password@bind:port/database?sslmode=disable" -verbose up
+	migrate -path psql/migration -database "postgresql://postgres:Secret@127.0.0.1:5432/the_monkeys?sslmode=disable" -verbose up
