@@ -19,7 +19,7 @@ Thank you for visiting our platform. We hope you find it informative and educati
 
 
 # Contribution Guidelines:
-We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. To start contributing, check the [Contributing Guidelines](contribution/contribution.MD).
+We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. To start contributing, check the [Contributing Guidelines](contribution/contribution.md).
 
  
 
