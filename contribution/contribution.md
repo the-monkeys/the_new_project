@@ -10,7 +10,7 @@ We're glad you're thinking about contributing to The Monkeys. If you think somet
 * Golang 1.18
 * Protoc compiler
 
-NOTE: Have a config file in /etc/the_monkeys/dev.env if you are using Linux/Mac. In case if you have a Windows machine you can keep the dev.env in your fav directory and set up the path `services/api_gateway/config/config.go` file and other `config.go` files in different microservice.
+NOTE: Have a config file in `/etc/the_monkey/dev.env` if you are using Linux/Mac. In case if you have a Windows machine you can keep the dev.env in your fav directory and set up the path `services/api_gateway/config/config.go` file and other `config.go` files in different microservice.
 
 ```
 PORT=0.0.0.0:5001
