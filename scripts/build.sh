@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 source ${MONKEY_SCRIPTS}/common.sh
@@ -16,15 +17,5 @@ do
     read -ra ADDR <<<$microservice_name
 
     echo "Build the $microservice_name"
-<<<<<<<< HEAD:scripts/build.sh
     (cd "$dir" && go build -o "${MONKEY_ROOT}/bin/$microservice_name"); 
 done
-========
-    (cd "$dir" && go build -o "/usr/local/bin/the_monkeys/$microservice_name"); 
-done
-
-
-
-# restart services to load the new code changes
-sudo systemctl restart microservice_name 
->>>>>>>> 9e7d540 (SQL script ready):bash/build.sh

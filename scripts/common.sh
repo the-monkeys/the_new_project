@@ -16,4 +16,3 @@ function sh_perror()
 {
     echo "$@" >/dev/stderr
 }
-
