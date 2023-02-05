@@ -21,5 +21,14 @@ Thank you for visiting our platform. We hope you find it informative and educati
 # Contribution Guidelines:
 We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. To start contributing, check the [Contributing Guidelines](contribution/contribution.md).
 
+ # Native installation steps
+ 1. Export scripts directory:
+   - `export MONKEY_SCRIPTS=the_new_project/scripts/`
  
+ 2. Build the services:
+   - `./scripts/build.sh`
+  
+ 3. Install services and other core components:
+   - `./scripts/install.sh`
 
+ 4. TODO

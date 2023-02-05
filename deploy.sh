@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+source common.sh
 
 # change these variables to match your setup
 PROGRAM_NAME="api_gateway"
@@ -13,6 +13,7 @@ useradd -r -s /bin/false $PROGRAM_NAME
 # create a new service file
 touch /etc/systemd/system/$PROGRAM_NAME.service
 
+# TODO: Skip if the-monkey is already installed.
 # write the service file
 cat > /etc/systemd/system/$PROGRAM_NAME.service <<EOF
 [Unit]
