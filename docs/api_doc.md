@@ -43,7 +43,7 @@ curl --location --request GET 'http://localhost:5001/api/v1/post/121778fb-dfe5-4
 
 ## Create an article
 ```
-curl --location --request POST 'http://localhost:5001/api/v1/post/create' \
+curl --location --request POST 'http://localhost:5001/api/v1/post' \
 --header 'authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDYyOTE4NTAsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJ2aXJAYmV0YS5jb20ifQ.dO6mzGOkZ8uimThIOgdolJPGFXXhu75oOypmxRclUaM' \
 --header 'Content-Type: application/json' \
 --data-raw '{

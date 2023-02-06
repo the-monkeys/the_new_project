@@ -2,12 +2,9 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type TheMonkeysUser struct {
-	gorm.Model
 	Id                        int64     `json:"id" gorm:"primaryKey"`
 	UUID                      string    `json:"unique_id"`
 	FirstName                 string    `json:"first_name"`
