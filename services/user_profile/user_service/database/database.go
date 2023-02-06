@@ -2,25 +2,16 @@ package database
 
 import (
 	"database/sql"
-	"log"
 
-	"github.com/89minutes/the_new_project/services/user_profile/user_service/models"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 type UserHandler struct {
-	GormConn *gorm.DB
-	Psql     *sql.DB
+	Psql *sql.DB
 }
 
 func Init(url string) UserHandler {
-	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
-	if err != nil {
-		log.Fatalln(err)
-	}
 
 	dbPsql, err := sql.Open("postgres", url)
 	if err != nil {
@@ -32,9 +23,5 @@ func Init(url string) UserHandler {
 		return UserHandler{}
 	}
 
-	if err = db.AutoMigrate(&models.UserServe{}); err != nil {
-		logrus.Fatalf("cannot migrate user table, error:, %+v", err)
-	}
-
-	return UserHandler{GormConn: db, Psql: dbPsql}
+	return UserHandler{Psql: dbPsql}
 }
