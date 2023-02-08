@@ -2,6 +2,7 @@ package user_service
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
@@ -10,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserServiceClient struct {
@@ -51,10 +54,28 @@ func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadGateway, err)
-		return
+		s, ok := status.FromError(err)
+		if !ok {
+			log.Printf("Unexpected error from gRPC server: %v", err)
+			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		switch s.Code() {
+		case codes.NotFound:
+			log.Printf("Error from gRPC server: %s", http.StatusText(http.StatusNotFound))
+			_ = ctx.AbortWithError(http.StatusNotFound, err)
+			return
+		case codes.InvalidArgument:
+			log.Printf("Error from gRPC server: %s", http.StatusText(http.StatusBadRequest))
+			_ = ctx.AbortWithError(http.StatusBadRequest, err)
+			return
+		default:
+			log.Printf("Error from gRPC server: %s", http.StatusText(http.StatusInternalServerError))
+			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
 	}
 
 	ctx.JSON(http.StatusAccepted, &res)
-
 }

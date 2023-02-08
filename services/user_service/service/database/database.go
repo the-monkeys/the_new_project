@@ -38,7 +38,6 @@ func (uh *UserDbHandler) GetMyProfile(id int64) (*pb.GetMyProfileRes, error) {
 		&profile.About, &profile.Instagram, &profile.Twitter, &profile.EmailVerified); err != nil {
 		return nil, err
 	}
-	defer uh.Psql.Close()
 
 	res := &pb.GetMyProfileRes{
 		Id:            profile.Id,
