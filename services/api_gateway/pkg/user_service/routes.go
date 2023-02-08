@@ -46,7 +46,7 @@ func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
 		return
 	}
 
-	res, err := asc.Client.GetUserProfile(context.Background(), &pb.GetUserProfileReq{
+	res, err := asc.Client.GetMyProfile(context.Background(), &pb.GetMyProfileReq{
 		Id: body.Id,
 	})
 
