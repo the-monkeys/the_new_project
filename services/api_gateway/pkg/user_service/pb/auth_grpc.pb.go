@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	GetUserProfile(ctx context.Context, in *GetUserProfileReq, opts ...grpc.CallOption) (*GetUserProfileRes, error)
+	GetMyProfile(ctx context.Context, in *GetMyProfileReq, opts ...grpc.CallOption) (*GetMyProfileRes, error)
 }
 
 type userServiceClient struct {
@@ -33,9 +33,9 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) GetUserProfile(ctx context.Context, in *GetUserProfileReq, opts ...grpc.CallOption) (*GetUserProfileRes, error) {
-	out := new(GetUserProfileRes)
-	err := c.cc.Invoke(ctx, "/auth.UserService/GetUserProfile", in, out, opts...)
+func (c *userServiceClient) GetMyProfile(ctx context.Context, in *GetMyProfileReq, opts ...grpc.CallOption) (*GetMyProfileRes, error) {
+	out := new(GetMyProfileRes)
+	err := c.cc.Invoke(ctx, "/auth.UserService/GetMyProfile", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (c *userServiceClient) GetUserProfile(ctx context.Context, in *GetUserProfi
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	GetUserProfile(context.Context, *GetUserProfileReq) (*GetUserProfileRes, error)
+	GetMyProfile(context.Context, *GetMyProfileReq) (*GetMyProfileRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -54,8 +54,8 @@ type UserServiceServer interface {
 type UnimplementedUserServiceServer struct {
 }
 
-func (UnimplementedUserServiceServer) GetUserProfile(context.Context, *GetUserProfileReq) (*GetUserProfileRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserProfile not implemented")
+func (UnimplementedUserServiceServer) GetMyProfile(context.Context, *GetMyProfileReq) (*GetMyProfileRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMyProfile not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -70,20 +70,20 @@ func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
 	s.RegisterService(&UserService_ServiceDesc, srv)
 }
 
-func _UserService_GetUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserProfileReq)
+func _UserService_GetMyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyProfileReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).GetUserProfile(ctx, in)
+		return srv.(UserServiceServer).GetMyProfile(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.UserService/GetUserProfile",
+		FullMethod: "/auth.UserService/GetMyProfile",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetUserProfile(ctx, req.(*GetUserProfileReq))
+		return srv.(UserServiceServer).GetMyProfile(ctx, req.(*GetMyProfileReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -96,8 +96,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetUserProfile",
-			Handler:    _UserService_GetUserProfile_Handler,
+			MethodName: "GetMyProfile",
+			Handler:    _UserService_GetMyProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

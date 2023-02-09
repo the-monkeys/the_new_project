@@ -77,37 +77,6 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	return &pb.RegisterResponse{Status: http.StatusOK, Error: "registered successfully"}, nil
 }
 
-// func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-// 	var user models.TheMonkeysUser
-
-// 	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error == nil {
-// 		return &pb.RegisterResponse{
-// 			Status: http.StatusConflict,
-// 			Error:  "email already exists",
-// 		}, nil
-// 	}
-
-// 	return &pb.RegisterResponse{
-// 		Status: http.StatusOK,
-// 		Error:  "no error",
-// 	}, nil
-
-// 	user.FirstName = req.FirstName
-// 	user.LastName = req.LastName
-// 	user.Email = req.Email
-// 	user.Password = utils.HashPassword(req.Password)
-// 	user.CreateTime = time.Now().Format(common.DATE_TIME_FORMAT)
-// 	user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
-// 	user.IsActive = true
-// 	user.Role = int32(pb.UserRole_USER_NORMAL)
-
-// 	s.dbCli.GormClient.Create(&user)
-
-// 	return &pb.RegisterResponse{
-// 		Status: http.StatusCreated,
-// 	}, nil
-// }
-
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var user models.TheMonkeysUser
 
@@ -147,36 +116,6 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 		Token:  token,
 	}, nil
 }
-
-// func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-// 	var user models.TheMonkeysUser
-
-// 	if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: req.Email}).First(&user); result.Error != nil {
-// 		logrus.Infof("user containing email: %s, doesn't exists", req.Email)
-// 		return &pb.LoginResponse{
-// 			Status: http.StatusNotFound,
-// 			Error:  "user doesn't exists",
-// 		}, nil
-// 	}
-
-// 	match := utils.CheckPasswordHash(req.Password, user.Password)
-
-// 	if !match {
-// 		logrus.Infof("incorrect password given for the user containing email: %s", req.Email)
-// 		return &pb.LoginResponse{
-// 			Status: http.StatusBadRequest,
-// 			Error:  "incorrect password",
-// 		}, nil
-// 	}
-
-// 	token, _ := s.jwt.GenerateToken(user)
-
-// 	logrus.Infof("user containing email: %s, can successfully login", req.Email)
-// 	return &pb.LoginResponse{
-// 		Status: http.StatusOK,
-// 		Token:  token,
-// 	}, nil
-// }
 
 func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	claims, err := s.jwt.ValidateToken(req.Token)

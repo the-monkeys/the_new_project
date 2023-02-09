@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
+	"github.com/89minutes/the_new_project/services/api_gateway/errors"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/user_service/pb"
 	"github.com/gin-gonic/gin"
@@ -46,15 +47,14 @@ func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
 		return
 	}
 
-	res, err := asc.Client.GetUserProfile(context.Background(), &pb.GetUserProfileReq{
+	res, err := asc.Client.GetMyProfile(context.Background(), &pb.GetMyProfileReq{
 		Id: body.Id,
 	})
 
 	if err != nil {
-		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		errors.RestError(ctx, err, "user")
 		return
 	}
 
 	ctx.JSON(http.StatusAccepted, &res)
-
 }
