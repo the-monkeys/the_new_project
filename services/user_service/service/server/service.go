@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log"
 
 	"database/sql"
 
@@ -28,13 +29,21 @@ func (us *UserService) GetMyProfile(ctx context.Context, req *pb.GetMyProfileReq
 
 	resp, err := us.db.GetMyProfile(req.GetId())
 	if err != nil {
-		if err == sql.ErrNoRows {
+		switch err {
+		case sql.ErrNoRows:
 			us.log.Infof("cannot fine the user with id %v ", req.GetId())
 			return nil, status.Errorf(codes.NotFound, "failed to find the record, error: %v", err)
+		case sql.ErrTxDone:
+			log.Println("The transaction has already been committed or rolled back.")
+			return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
+		case sql.ErrConnDone:
+			log.Println("The database connection has been closed.")
+			return nil, status.Errorf(codes.Unavailable, "failed to find the record, error: %v", err)
+		default:
+			log.Printf("An internal server error occurred: %v\n", err)
+			return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
 		}
-
-		us.log.Errorf("cannot get user profile for id %v, error: %v", req.GetId(), err)
-		return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
 	}
+
 	return resp, nil
 }
