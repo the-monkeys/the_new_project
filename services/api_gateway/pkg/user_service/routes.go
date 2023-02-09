@@ -154,7 +154,6 @@ func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 		logrus.Errorf("cannot get the stream data, error: %+v", err)
 	}
 
-	logrus.Info("DATA: ", resp.Data)
 	ioutil.WriteFile("abc.png", resp.Data, 0777)
 	ctx.JSON(http.StatusAccepted, "uploaded")
 }
