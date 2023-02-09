@@ -85,3 +85,30 @@ func (uh *UserDbHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
 
 	return nil
 }
+
+func (uh *UserDbHandler) UploadProfilePic(pic []byte, id int64) error {
+	stmt, err := uh.Psql.Prepare(`UPDATE the_monkeys_user SET profile_pic=$1 WHERE id=$2`)
+	if err != nil {
+		uh.log.Errorf("cannot prepare upload profile pic statement, error: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(pic, id)
+	if err != nil {
+		uh.log.Errorf("cannot execute update profile pic statement, error: %v", err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %s, error: %v", id, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", id, err)
+		return errors.New("more or less than 1 row is affected")
+	}
+
+	return nil
+}

@@ -2,6 +2,10 @@ package user_service
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
@@ -36,6 +40,8 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.Use(mware.AuthRequired)
 	routes.GET("/user", usc.GetProfile)
 	routes.POST("/user", usc.UpdateProfile)
+	routes.POST("/user/:id", usc.UpdateProfilePic)
+	routes.GET("/user/:id", usc.GetProfilePic)
 
 	return usc
 }
@@ -85,4 +91,70 @@ func (asc *UserServiceClient) UpdateProfile(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusAccepted, &res)
+}
+
+func (asc *UserServiceClient) UpdateProfilePic(ctx *gin.Context) {
+	file, _, err := ctx.Request.FormFile("image")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	stream, err := asc.Client.UploadProfile(context.Background())
+
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	imageData, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("Error reading image data:", err)
+
+	}
+
+	cunk := &pb.ProfilePicChunk{
+		Data: imageData,
+	}
+	err = stream.Send(cunk)
+	if err != nil {
+		log.Fatal("cannot send image info to server: ", err, stream.RecvMsg(nil))
+	}
+
+	response, err := stream.CloseAndRecv()
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	log.Printf("%+v\n", response)
+	ctx.JSON(http.StatusAccepted, "uploaded")
+}
+
+func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
+	file, _, err := ctx.Request.FormFile("image")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	stream, err := asc.Client.Download(context.Background(), &pb.ProfileId{Id: 2})
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	resp, err := stream.Recv()
+	if err == io.EOF {
+
+	}
+	if err != nil {
+		logrus.Errorf("cannot get the stream data, error: %+v", err)
+	}
+
+	logrus.Info("DATA: ", resp.Data)
+	ioutil.WriteFile("abc.png", resp.Data, 0777)
+	ctx.JSON(http.StatusAccepted, "uploaded")
 }

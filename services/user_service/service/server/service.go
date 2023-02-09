@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 
@@ -70,4 +71,41 @@ func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq
 	return &pb.SetMyProfileRes{
 		Status: http.StatusOK,
 	}, nil
+}
+
+func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) error {
+	var imageData []byte
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		imageData = append(imageData, chunk.Data...)
+	}
+
+	err := us.db.UploadProfilePic(imageData, 2)
+	if err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.ProfileId{Id: 1})
+}
+func (us *UserService) Download(req *pb.ProfileId, stream pb.UserService_DownloadServer) error {
+	xb := []byte{}
+	if err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", 2).Scan(&xb); err != nil {
+		us.log.Errorf("cannot get the profile pic, error: %v", err)
+		return err
+	}
+
+	if err := stream.Send(&pb.ProfilePicChunk{
+		Data: xb,
+	}); err != nil {
+		us.log.Errorf("error while sending stream, error %+v", err)
+	}
+
+	return nil
 }
