@@ -29,3 +29,6 @@ jobs:
 
     - name: Create Postgres
       run: end2end/psql_container.sh
+    
+    - name: total no of containers running
+      run: end2end/psql_container.sh
