@@ -32,9 +32,13 @@ docker run -d --name $CONTAINER_NAME \
     $IMAGE_NAME
 
 
+echo "Docker container has been created and running!"
+
 MIGRATION_DIR=psql/migration
 
-sql_files=$(ls $MIGRATION_DIR/*.sql)
+sql_files=$(ls $MIGRATION_DIR/*.up.sql)
+
+echo "The following files are set to migrate."
 echo $sql_files
 
 # Loop through each SQL file and migrate it to the database
@@ -43,7 +47,7 @@ do
   echo "Migrating $file..."
 
   # Use the docker exec command to run psql in the container and execute the SQL file
-  docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $DATABASE_NAME -v ON_ERROR_STOP=1 -f $file
+  docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $file
 
   # Check the exit code of psql and exit the script if there was an error
   if [ $? -ne 0 ]
