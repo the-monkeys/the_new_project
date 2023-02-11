@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -x
+
+
 # List all running containers and count the number of lines
 num_containers=$(docker ps | wc -l)
 

@@ -1,5 +1,19 @@
 #!/bin/bash
 
+set -x
+
+# Get a list of all container IDs
+container_ids=$(docker ps -aq)
+
+# Remove all containers
+if [ ! -z "$container_ids" ]
+then
+  docker rm -f $container_ids
+  echo "Removed all containers."
+else
+  echo "No containers to remove."
+fi
+
 # Define the container name and image name
 CONTAINER_NAME=subtle_art
 IMAGE_NAME=postgres
