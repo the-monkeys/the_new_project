@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS pw_reset
     email text ,
     recovery_hash text ,
     time_out timestamp with time zone,
+    -- TODO: rename last_password_reset to password_reset_time
     last_password_reset timestamp with time zone,
 
     CONSTRAINT password_resets_pkey PRIMARY KEY (id),

@@ -48,7 +48,7 @@ message ForgotPasswordRes {
 }
 
 message ResetPasswordReq {
-  string email = 1;
+  int64 id = 1;
   string token = 3;
 }
 

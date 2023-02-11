@@ -2,11 +2,13 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
+	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
+	"github.com/89minutes/the_new_project/services/api_gateway/errors"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth/pb"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -40,7 +42,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/login", asc.Login)
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.GET("/reset-password", asc.ResetPassword)
-	routes.GET("/verify-email", asc.VerifyPassword)
+	routes.GET("/verify-email", asc.VerifyEmail)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
@@ -113,13 +115,13 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 
 	if res.Status == http.StatusNotFound {
 		asc.Log.Errorf("user containing email: %s, doesn't exists", body.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
 		return
 	}
 
 	if res.Status == http.StatusBadRequest {
 		asc.Log.Errorf("incorrect password given for the user containing email: %s", body.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
 		return
 	}
 
@@ -141,21 +143,12 @@ func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 		Email: body.Email,
 	})
 
+	// TODO: remove the following two lines
+	asc.Log.Infof("response: %+v", res)
+	asc.Log.Infof("error: %+v", err)
+
 	if err != nil {
-		asc.Log.Errorf("internal server error, user containing email: %s cannot login", body.Email)
-		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
-		asc.Log.Infof("user containing email: %s, doesn't exists", body.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
-		return
-	}
-
-	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
-		asc.Log.Infof("incorrect password given for the user containing email: %s", body.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		errors.RestError(ctx, err, "user")
 		return
 	}
 
@@ -166,8 +159,14 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")
 
+	userId, err := strconv.ParseInt(userAny, 10, 64)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
 	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
-		Email: userAny,
+		Id:    userId,
 		Token: secretAny,
 	})
 
@@ -179,20 +178,20 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 
 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
 		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
 		return
 	}
 
 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
 		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, &res)
 }
 
-func (asc *ServiceClient) VerifyPassword(ctx *gin.Context) {
+func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")
 
@@ -209,13 +208,13 @@ func (asc *ServiceClient) VerifyPassword(ctx *gin.Context) {
 
 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
 		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
 		return
 	}
 
 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
 		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
 		return
 	}
 
@@ -242,13 +241,13 @@ func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
 
 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
 		asc.Log.Infof("user containing email: %s, doesn't exists", vrEmail.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
 		return
 	}
 
 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
 		asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, errors.New(res.Error))
+		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
 		return
 	}
 
