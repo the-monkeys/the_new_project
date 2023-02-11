@@ -27,8 +27,5 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-  integration:
-    runs-on: ubuntu-latest
-
     - name: Create Postgres
       run: end2end/psql_container.sh
