@@ -4,9 +4,6 @@ package auth;
 
 option go_package = "./services/auth_service/pkg/pb";
 
-
-// Register
-
 message RegisterRequest {
   string firstName = 1;
   string lastName = 2;
@@ -27,7 +24,6 @@ enum UserRole {
   USER_SECURITY = 3;
 }
 
-// Login
 message LoginRequest {
   string email = 1;
   string password = 2;
@@ -39,7 +35,6 @@ message LoginResponse {
   string token = 3;
 }
 
-// Validate
 message ValidateRequest { 
   string token = 1; 
 }
@@ -48,6 +43,7 @@ message ValidateResponse {
   int64 status = 1;
   string error = 2;
   int64 userId = 3;
+  string user = 4;
 }
 
 message ForgotPasswordReq {
@@ -92,6 +88,17 @@ message EmailVerificationRes {
   string message = 3;
 }
 
+message UpdatePasswordReq {
+  string password = 1;
+  string email = 2;
+}
+
+message UpdatePasswordRes {
+  int64 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
@@ -100,4 +107,5 @@ service AuthService {
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
   rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
   rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
+  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
 }

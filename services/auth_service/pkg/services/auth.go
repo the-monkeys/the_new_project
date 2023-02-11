@@ -148,6 +148,7 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 	return &pb.ValidateResponse{
 		Status: http.StatusOK,
 		UserId: user.Id,
+		User:   claims.Email,
 	}, nil
 }
 
@@ -264,7 +265,19 @@ func (srv *AuthServer) SendMail(email, verificationToken string) error {
 
 	return nil
 }
+func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
+	logrus.Infof("updating password for: %+v", req.Email)
 
+	encHash := utils.HashPassword(req.Password)
+	if err := s.dbCli.UpdatePassword(encHash, req.Email); err != nil {
+		return nil, err
+	}
+	return &pb.UpdatePasswordRes{
+		Status: http.StatusOK,
+	}, nil
+}
+
+// Verify email
 func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
 	var user models.TheMonkeysUser
 	var timeOut string

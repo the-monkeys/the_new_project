@@ -123,3 +123,30 @@ func (auth *AuthDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.
 
 	return nil
 }
+
+func (auth *AuthDBHandler) UpdatePassword(password, email string) error {
+	stmt, err := auth.PsqlClient.Prepare(`UPDATE the_monkeys_user SET 
+	password=$1 WHERE email=$2;`)
+	defer stmt.Close()
+	if err != nil {
+		logrus.Errorf("cannot prepare statement to update password for %s error: %+v", email, err)
+		return err
+	}
+
+	res, err := stmt.Exec(password, email)
+	if err != nil {
+		logrus.Errorf("cannot update the password for %s, error: %v", email, err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %s, error: %v", email, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", email, err)
+		return err
+	}
+	return nil
+}

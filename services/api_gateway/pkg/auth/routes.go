@@ -41,12 +41,12 @@ func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
 	routes.POST("/forgot-pass", asc.ForgotPassword)
-	routes.GET("/reset-password", asc.ResetPassword)
-	routes.GET("/verify-email", asc.VerifyEmail)
+	routes.POST("/reset-password", asc.ResetPassword)
+	routes.POST("/verify-email", asc.VerifyEmail)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
-
+	routes.POST("/update-password", asc.UpdatePassword)
 	routes.POST("/req-email-verification", asc.ReqEmailVerification)
 
 	return asc
@@ -143,10 +143,6 @@ func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 		Email: body.Email,
 	})
 
-	// TODO: remove the following two lines
-	asc.Log.Infof("response: %+v", res)
-	asc.Log.Infof("error: %+v", err)
-
 	if err != nil {
 		errors.RestError(ctx, err, "user")
 		return
@@ -191,6 +187,51 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
+
+	authorization := ctx.Request.Header.Get("authorization")
+
+	if authorization == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	token := strings.Split(authorization, "Bearer ")
+
+	if len(token) < 2 {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
+		Token: token[1],
+	})
+	if err != nil || res.Status != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	pass := UpdatePassword{}
+	if err := ctx.BindJSON(&pass); err != nil {
+		asc.Log.Errorf("json body is not correct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	logrus.Infof("Password: %v", pass.Password)
+	logrus.Infof("res: %+v", res)
+	passResp, err := asc.Client.UpdatePassword(context.Background(), &pb.UpdatePasswordReq{
+		Password: pass.Password,
+		Email:    res.User,
+	})
+	if err != nil {
+		errors.RestError(ctx, err, "user")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, passResp)
+}
+
+// To verify email
 func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")
