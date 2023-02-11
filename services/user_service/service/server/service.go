@@ -50,6 +50,7 @@ func (us *UserService) GetMyProfile(ctx context.Context, req *pb.GetMyProfileReq
 	return resp, nil
 }
 
+// TODO: Send an email after profile update
 func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq) (*pb.SetMyProfileRes, error) {
 	us.log.Infof("the user %s has requested to update profile", req.GetEmail())
 	if err := us.db.UpdateMyProfile(req); err != nil {

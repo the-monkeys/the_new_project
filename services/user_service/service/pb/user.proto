@@ -35,6 +35,7 @@ message SetMyProfileReq {
     string instagram = 6;
     string twitter = 7;
     string email = 8;
+    int64 id = 9;
 }
 
 message SetMyProfileRes {
