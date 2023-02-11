@@ -31,4 +31,4 @@ jobs:
       run: end2end/psql_container.sh
     
     - name: total no of containers running
-      run: end2end/psql_container.sh
+      run: end2end/no_of_containers.sh
