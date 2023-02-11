@@ -47,7 +47,9 @@ do
   echo "Migrating $file..."
 
   # Use the docker exec command to run psql in the container and execute the SQL file
-  docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $file
+  # docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $file
+    docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -f $file
+
 
   # Check the exit code of psql and exit the script if there was an error
   if [ $? -ne 0 ]
