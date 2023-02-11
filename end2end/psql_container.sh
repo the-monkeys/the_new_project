@@ -19,7 +19,7 @@ CONTAINER_NAME=subtle_art
 IMAGE_NAME=postgres
 
 # Set the Postgres password
-POSTGRES_USER = postgres
+POSTGRES_USER=postgres
 POSTGRES_PASSWORD=Secret
 POSTGRES_DB=the_monkeys
 
