@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	GetMyProfile(ctx context.Context, in *GetMyProfileReq, opts ...grpc.CallOption) (*GetMyProfileRes, error)
+	SetMyProfile(ctx context.Context, in *SetMyProfileReq, opts ...grpc.CallOption) (*SetMyProfileRes, error)
 }
 
 type userServiceClient struct {
@@ -42,11 +43,21 @@ func (c *userServiceClient) GetMyProfile(ctx context.Context, in *GetMyProfileRe
 	return out, nil
 }
 
+func (c *userServiceClient) SetMyProfile(ctx context.Context, in *SetMyProfileReq, opts ...grpc.CallOption) (*SetMyProfileRes, error) {
+	out := new(SetMyProfileRes)
+	err := c.cc.Invoke(ctx, "/auth.UserService/SetMyProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	GetMyProfile(context.Context, *GetMyProfileReq) (*GetMyProfileRes, error)
+	SetMyProfile(context.Context, *SetMyProfileReq) (*SetMyProfileRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -56,6 +67,9 @@ type UnimplementedUserServiceServer struct {
 
 func (UnimplementedUserServiceServer) GetMyProfile(context.Context, *GetMyProfileReq) (*GetMyProfileRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMyProfile not implemented")
+}
+func (UnimplementedUserServiceServer) SetMyProfile(context.Context, *SetMyProfileReq) (*SetMyProfileRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetMyProfile not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -88,6 +102,24 @@ func _UserService_GetMyProfile_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_SetMyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetMyProfileReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetMyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.UserService/SetMyProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetMyProfile(ctx, req.(*SetMyProfileReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +130,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMyProfile",
 			Handler:    _UserService_GetMyProfile_Handler,
+		},
+		{
+			MethodName: "SetMyProfile",
+			Handler:    _UserService_SetMyProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

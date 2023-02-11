@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/89minutes/the_new_project/services/user_service/service/models"
 	"github.com/89minutes/the_new_project/services/user_service/service/pb"
@@ -49,9 +50,38 @@ func (uh *UserDbHandler) GetMyProfile(id int64) (*pb.GetMyProfileRes, error) {
 		CountryCode:   profile.CountryCode,
 		Mobile:        profile.Mobile,
 		About:         profile.About,
-		Insagram:      profile.Instagram,
+		Instagram:     profile.Instagram,
 		Twitter:       profile.Twitter,
 		EmailVerified: profile.EmailVerified,
 	}
 	return res, nil
+}
+
+func (uh *UserDbHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
+	stmt, err := uh.Psql.Prepare(`UPDATE the_monkeys_user SET first_name=$1, last_name=$2,
+	country_code=$3, mobile_no=$4, about=$5, instagram=$6, twitter=$7 WHERE email=$8`)
+	if err != nil {
+		uh.log.Errorf("cannot prepare update profile statement, error: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(info.FirstName, info.LastName, info.CountryCode, info.MobileNo,
+		info.About, info.Instagram, info.Twitter, info.Email)
+	if err != nil {
+		uh.log.Errorf("cannot execute update profile statement, error: %v", err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %s, error: %v", info.Email, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", info.Email, err)
+		return errors.New("more or less than 1 row is affected")
+	}
+
+	return nil
 }

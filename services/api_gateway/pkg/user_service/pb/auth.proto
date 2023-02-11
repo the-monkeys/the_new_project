@@ -26,6 +26,24 @@ message GetMyProfileRes {
     
 }
 
+message SetMyProfileReq {
+    string firstName = 1;
+    string lastName = 2;
+    string countryCode = 3;
+    string mobileNo = 4;
+    string about = 5;
+    string instagram = 6;
+    string twitter = 7;
+    string email = 8;
+}
+
+message SetMyProfileRes {
+    int64 status = 1;
+    string error = 2;
+    string id = 3;
+  }
+
 service UserService {
-    rpc GetMyProfile(GetMyProfileReq) returns (GetMyProfileRes) {}
+    rpc GetMyProfile(GetMyProfileReq) returns (GetMyProfileRes) {};
+    rpc SetMyProfile(SetMyProfileReq) returns (SetMyProfileRes) {};
 }
