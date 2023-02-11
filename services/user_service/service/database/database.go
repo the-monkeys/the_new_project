@@ -106,11 +106,11 @@ func (uh *UserDbHandler) UploadProfilePic(pic []byte, id int64) error {
 
 	row, err := res.RowsAffected()
 	if err != nil {
-		logrus.Errorf("error while checking rows affected for %s, error: %v", id, err)
+		logrus.Errorf("error while checking rows affected for %d, error: %v", id, err)
 		return err
 	}
 	if row != 1 {
-		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", id, err)
+		logrus.Errorf("more or less than 1 row is affected for %d, error: %v", id, err)
 		return errors.New("more or less than 1 row is affected")
 	}
 
