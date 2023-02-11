@@ -92,16 +92,20 @@ func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) 
 		return err
 	}
 
-	return stream.SendAndClose(&pb.ProfileId{Id: 1})
+	return stream.SendAndClose(&pb.UploadProfilePicRes{
+		Status: http.StatusOK,
+		// TODO: SET ID
+		Id: 2,
+	})
 }
-func (us *UserService) Download(req *pb.ProfileId, stream pb.UserService_DownloadServer) error {
+func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_DownloadServer) error {
 	xb := []byte{}
-	if err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", 2).Scan(&xb); err != nil {
+	if err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", req.Id).Scan(&xb); err != nil {
 		us.log.Errorf("cannot get the profile pic, error: %v", err)
 		return err
 	}
 
-	if err := stream.Send(&pb.ProfilePicChunk{
+	if err := stream.Send(&pb.GetProfilePicRes{
 		Data: xb,
 	}); err != nil {
 		us.log.Errorf("error while sending stream, error %+v", err)

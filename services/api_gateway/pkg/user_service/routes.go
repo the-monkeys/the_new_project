@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
 	"github.com/89minutes/the_new_project/services/api_gateway/errors"
@@ -47,7 +48,6 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 }
 
 func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
-
 	body := ProfileRequestBody{}
 	if err := ctx.BindJSON(&body); err != nil {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
@@ -101,45 +101,55 @@ func (asc *UserServiceClient) UpdateProfilePic(ctx *gin.Context) {
 	}
 	defer file.Close()
 
-	stream, err := asc.Client.UploadProfile(context.Background())
-
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
 	imageData, err := ioutil.ReadAll(file)
 	if err != nil {
 		fmt.Println("Error reading image data:", err)
 
 	}
 
-	cunk := &pb.ProfilePicChunk{
-		Data: imageData,
-	}
-	err = stream.Send(cunk)
+	// get id
+	id := ctx.Param("id")
+	userId, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		log.Fatal("cannot send image info to server: ", err, stream.RecvMsg(nil))
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
-	response, err := stream.CloseAndRecv()
+	stream, err := asc.Client.UploadProfile(context.Background())
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
-	log.Printf("%+v\n", response)
+	chunk := &pb.UploadProfilePicReq{
+		Data: imageData,
+		Id:   userId,
+	}
+	err = stream.Send(chunk)
+	if err != nil {
+		log.Fatal("cannot send image info to server: ", err, stream.RecvMsg(nil))
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// log.Printf("%+v\n", response)
 	ctx.JSON(http.StatusAccepted, "uploaded")
 }
 
 func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
-	file, _, err := ctx.Request.FormFile("image")
+	// get id
+	id := ctx.Param("id")
+	userId, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	defer file.Close()
 
-	stream, err := asc.Client.Download(context.Background(), &pb.ProfileId{Id: 2})
+	stream, err := asc.Client.Download(context.Background(), &pb.GetProfilePicReq{Id: userId})
 	if err != nil {
 		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
 		_ = ctx.AbortWithError(http.StatusBadGateway, err)
@@ -154,6 +164,8 @@ func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 		logrus.Errorf("cannot get the stream data, error: %+v", err)
 	}
 
-	ioutil.WriteFile("abc.png", resp.Data, 0777)
-	ctx.JSON(http.StatusAccepted, "uploaded")
+	ioutil.WriteFile("profile.png", resp.Data, 0777)
+	// ctx.File(http.StatusAccepted, resp.Data)
+	ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
+	ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
 }

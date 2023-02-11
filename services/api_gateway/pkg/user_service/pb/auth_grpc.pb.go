@@ -25,7 +25,7 @@ type UserServiceClient interface {
 	GetMyProfile(ctx context.Context, in *GetMyProfileReq, opts ...grpc.CallOption) (*GetMyProfileRes, error)
 	SetMyProfile(ctx context.Context, in *SetMyProfileReq, opts ...grpc.CallOption) (*SetMyProfileRes, error)
 	UploadProfile(ctx context.Context, opts ...grpc.CallOption) (UserService_UploadProfileClient, error)
-	Download(ctx context.Context, in *ProfileId, opts ...grpc.CallOption) (UserService_DownloadClient, error)
+	Download(ctx context.Context, in *GetProfilePicReq, opts ...grpc.CallOption) (UserService_DownloadClient, error)
 }
 
 type userServiceClient struct {
@@ -64,8 +64,8 @@ func (c *userServiceClient) UploadProfile(ctx context.Context, opts ...grpc.Call
 }
 
 type UserService_UploadProfileClient interface {
-	Send(*ProfilePicChunk) error
-	CloseAndRecv() (*ProfileId, error)
+	Send(*UploadProfilePicReq) error
+	CloseAndRecv() (*UploadProfilePicRes, error)
 	grpc.ClientStream
 }
 
@@ -73,22 +73,22 @@ type userServiceUploadProfileClient struct {
 	grpc.ClientStream
 }
 
-func (x *userServiceUploadProfileClient) Send(m *ProfilePicChunk) error {
+func (x *userServiceUploadProfileClient) Send(m *UploadProfilePicReq) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *userServiceUploadProfileClient) CloseAndRecv() (*ProfileId, error) {
+func (x *userServiceUploadProfileClient) CloseAndRecv() (*UploadProfilePicRes, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(ProfileId)
+	m := new(UploadProfilePicRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *userServiceClient) Download(ctx context.Context, in *ProfileId, opts ...grpc.CallOption) (UserService_DownloadClient, error) {
+func (c *userServiceClient) Download(ctx context.Context, in *GetProfilePicReq, opts ...grpc.CallOption) (UserService_DownloadClient, error) {
 	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[1], "/auth.UserService/Download", opts...)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (c *userServiceClient) Download(ctx context.Context, in *ProfileId, opts ..
 }
 
 type UserService_DownloadClient interface {
-	Recv() (*ProfilePicChunk, error)
+	Recv() (*GetProfilePicRes, error)
 	grpc.ClientStream
 }
 
@@ -112,8 +112,8 @@ type userServiceDownloadClient struct {
 	grpc.ClientStream
 }
 
-func (x *userServiceDownloadClient) Recv() (*ProfilePicChunk, error) {
-	m := new(ProfilePicChunk)
+func (x *userServiceDownloadClient) Recv() (*GetProfilePicRes, error) {
+	m := new(GetProfilePicRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ type UserServiceServer interface {
 	GetMyProfile(context.Context, *GetMyProfileReq) (*GetMyProfileRes, error)
 	SetMyProfile(context.Context, *SetMyProfileReq) (*SetMyProfileRes, error)
 	UploadProfile(UserService_UploadProfileServer) error
-	Download(*ProfileId, UserService_DownloadServer) error
+	Download(*GetProfilePicReq, UserService_DownloadServer) error
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -144,7 +144,7 @@ func (UnimplementedUserServiceServer) SetMyProfile(context.Context, *SetMyProfil
 func (UnimplementedUserServiceServer) UploadProfile(UserService_UploadProfileServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadProfile not implemented")
 }
-func (UnimplementedUserServiceServer) Download(*ProfileId, UserService_DownloadServer) error {
+func (UnimplementedUserServiceServer) Download(*GetProfilePicReq, UserService_DownloadServer) error {
 	return status.Errorf(codes.Unimplemented, "method Download not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
@@ -201,8 +201,8 @@ func _UserService_UploadProfile_Handler(srv interface{}, stream grpc.ServerStrea
 }
 
 type UserService_UploadProfileServer interface {
-	SendAndClose(*ProfileId) error
-	Recv() (*ProfilePicChunk, error)
+	SendAndClose(*UploadProfilePicRes) error
+	Recv() (*UploadProfilePicReq, error)
 	grpc.ServerStream
 }
 
@@ -210,12 +210,12 @@ type userServiceUploadProfileServer struct {
 	grpc.ServerStream
 }
 
-func (x *userServiceUploadProfileServer) SendAndClose(m *ProfileId) error {
+func (x *userServiceUploadProfileServer) SendAndClose(m *UploadProfilePicRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *userServiceUploadProfileServer) Recv() (*ProfilePicChunk, error) {
-	m := new(ProfilePicChunk)
+func (x *userServiceUploadProfileServer) Recv() (*UploadProfilePicReq, error) {
+	m := new(UploadProfilePicReq)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (x *userServiceUploadProfileServer) Recv() (*ProfilePicChunk, error) {
 }
 
 func _UserService_Download_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ProfileId)
+	m := new(GetProfilePicReq)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -231,7 +231,7 @@ func _UserService_Download_Handler(srv interface{}, stream grpc.ServerStream) er
 }
 
 type UserService_DownloadServer interface {
-	Send(*ProfilePicChunk) error
+	Send(*GetProfilePicRes) error
 	grpc.ServerStream
 }
 
@@ -239,7 +239,7 @@ type userServiceDownloadServer struct {
 	grpc.ServerStream
 }
 
-func (x *userServiceDownloadServer) Send(m *ProfilePicChunk) error {
+func (x *userServiceDownloadServer) Send(m *GetProfilePicRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 

@@ -40,20 +40,31 @@ message SetMyProfileReq {
 message SetMyProfileRes {
     int64 status = 1;
     string error = 2;
-    string id = 3;
+    int64 id = 3;
 }
 
-message ProfilePicChunk {
+message UploadProfilePicReq {
 	bytes data = 1;
+    int64 id = 2;
 }
 
-message ProfileId {
+message UploadProfilePicRes {
+    int64 status = 1;
+    string error = 2;
+    int64 id = 3;
+}
+
+message GetProfilePicReq {
 	int64 id = 1;
+}
+
+message GetProfilePicRes {
+	bytes data = 1;
 }
 
 service UserService {
     rpc GetMyProfile(GetMyProfileReq) returns (GetMyProfileRes) {};
     rpc SetMyProfile(SetMyProfileReq) returns (SetMyProfileRes) {};
-    rpc UploadProfile(stream ProfilePicChunk) returns (ProfileId) {};
-	rpc Download(ProfileId) returns (stream ProfilePicChunk) {};
+    rpc UploadProfile(stream UploadProfilePicReq) returns (UploadProfilePicRes) {};
+	rpc Download(GetProfilePicReq) returns (stream GetProfilePicRes) {};
 }
