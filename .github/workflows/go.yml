@@ -27,13 +27,13 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: Create Postgres
-      run: end2end/psql_container.sh
-    
-    - name: total no of containers running
-      run: end2end/no_of_containers.sh
-
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
+    - name: Create Postgres
+      run: end2end/psql_container.sh
+    
+    # - name: total no of containers running
+    #   run: end2end/no_of_containers.sh
