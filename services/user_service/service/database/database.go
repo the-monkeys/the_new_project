@@ -3,7 +3,9 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"time"
 
+	"github.com/89minutes/the_new_project/common"
 	"github.com/89minutes/the_new_project/services/user_service/service/models"
 	"github.com/89minutes/the_new_project/services/user_service/service/pb"
 	_ "github.com/lib/pq"
@@ -57,17 +59,18 @@ func (uh *UserDbHandler) GetMyProfile(id int64) (*pb.GetMyProfileRes, error) {
 	return res, nil
 }
 
+// TODO: If the record doesn't exist throw 404 error
 func (uh *UserDbHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
 	stmt, err := uh.Psql.Prepare(`UPDATE the_monkeys_user SET first_name=$1, last_name=$2,
-	country_code=$3, mobile_no=$4, about=$5, instagram=$6, twitter=$7 WHERE email=$8`)
+	country_code=$3, mobile_no=$4, about=$5, instagram=$6, twitter=$7, update_time=$8 WHERE id=$9`)
 	if err != nil {
 		uh.log.Errorf("cannot prepare update profile statement, error: %v", err)
 		return err
 	}
 	defer stmt.Close()
-
+	time := time.Now().Format(common.DATE_TIME_FORMAT)
 	res, err := stmt.Exec(info.FirstName, info.LastName, info.CountryCode, info.MobileNo,
-		info.About, info.Instagram, info.Twitter, info.Email)
+		info.About, info.Instagram, info.Twitter, time, info.Id)
 	if err != nil {
 		uh.log.Errorf("cannot execute update profile statement, error: %v", err)
 		return err
@@ -78,8 +81,36 @@ func (uh *UserDbHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
 		logrus.Errorf("error while checking rows affected for %s, error: %v", info.Email, err)
 		return err
 	}
-	if row != 1 {
+	if row > 1 {
 		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", info.Email, err)
+		return errors.New("more or less than 1 row is affected")
+	}
+
+	return nil
+}
+
+// TODO: If the record doesn't exist throw 404 error
+func (uh *UserDbHandler) UploadProfilePic(pic []byte, id int64) error {
+	stmt, err := uh.Psql.Prepare(`UPDATE the_monkeys_user SET profile_pic=$1 WHERE id=$2`)
+	if err != nil {
+		uh.log.Errorf("cannot prepare upload profile pic statement, error: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(pic, id)
+	if err != nil {
+		uh.log.Errorf("cannot execute update profile pic statement, error: %v", err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %d, error: %v", id, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %d, error: %v", id, err)
 		return errors.New("more or less than 1 row is affected")
 	}
 

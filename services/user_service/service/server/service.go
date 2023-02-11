@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 
@@ -49,6 +50,7 @@ func (us *UserService) GetMyProfile(ctx context.Context, req *pb.GetMyProfileReq
 	return resp, nil
 }
 
+// TODO: Send an email after profile update
 func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq) (*pb.SetMyProfileRes, error) {
 	us.log.Infof("the user %s has requested to update profile", req.GetEmail())
 	if err := us.db.UpdateMyProfile(req); err != nil {
@@ -70,4 +72,45 @@ func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq
 	return &pb.SetMyProfileRes{
 		Status: http.StatusOK,
 	}, nil
+}
+
+func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) error {
+	var imageData []byte
+	for {
+		chunk, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		imageData = append(imageData, chunk.Data...)
+	}
+
+	err := us.db.UploadProfilePic(imageData, 2)
+	if err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.UploadProfilePicRes{
+		Status: http.StatusOK,
+		// TODO: SET ID
+		Id: 2,
+	})
+}
+func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_DownloadServer) error {
+	xb := []byte{}
+	if err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", req.Id).Scan(&xb); err != nil {
+		us.log.Errorf("cannot get the profile pic, error: %v", err)
+		return err
+	}
+
+	if err := stream.Send(&pb.GetProfilePicRes{
+		Data: xb,
+	}); err != nil {
+		us.log.Errorf("error while sending stream, error %+v", err)
+	}
+
+	return nil
 }
