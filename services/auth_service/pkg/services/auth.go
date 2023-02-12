@@ -148,21 +148,15 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 	return &pb.ValidateResponse{
 		Status: http.StatusOK,
 		UserId: user.Id,
+		User:   claims.Email,
 	}, nil
 }
 
 func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
-	var user models.TheMonkeysUser
-
-	if err := s.dbCli.PsqlClient.QueryRow("SELECT first_name, last_name, email from users where email=$1;", req.GetEmail()).Scan(
-		&user.FirstName, &user.LastName, &user.Email); err != nil {
-		if err.Error() == "sql: no rows in result set" {
-			logrus.Errorf("cannot find the email %s, error: %v", req.Email, err)
-			return nil, status.Errorf(codes.NotFound, "the email isn't registered: %v", err)
-		}
-
-		logrus.Errorf("cannot fine the email %s, internal server error, error: %v", req.Email, err)
-		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	user, err := s.dbCli.GetNamesEmailFromEmail(req)
+	if err != nil {
+		logrus.Errorf("error occurred while finding the user %s, error: %v", req.Email, err)
+		return nil, err
 	}
 
 	var alphaNumRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
@@ -174,26 +168,9 @@ func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordR
 
 	emailVerifyHash := utils.HashPassword(string(randomHash))
 
-	// TODO: start a database transaction from here till all the process are complete
-	sqlStmt, err := s.dbCli.PsqlClient.Prepare("UPDATE password_resets SET recovery_hash=$1, time_out=$2, last_password_reset=$3 WHERE email=$4")
-	if err != nil {
-		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
-		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
-	}
-
-	result, err := sqlStmt.Exec(emailVerifyHash, time.Now().Add(time.Minute*5), time.Now(), req.Email)
-	if err != nil {
-		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
-		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
-	}
-	affectedRows, err := result.RowsAffected()
-	if err != nil {
-		logrus.Errorf("cannot check for affected rows for %s, error: %v", req.Email, err)
-		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
-	}
-	if affectedRows != 1 {
-		logrus.Errorf("more than 1 rows are getting affected for %s, error: %v", req.Email, err)
-		return nil, status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	if err = s.dbCli.UpdatePasswordRecoveryToken(emailVerifyHash, user); err != nil {
+		logrus.Errorf("error occurred while updating email verification token for %s, error: %v", req.Email, err)
+		return nil, err
 	}
 
 	// **********************************SEND EMAIL WITH PW RESET LINK***************************************
@@ -204,7 +181,7 @@ func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordR
 
 	subject := "Subject: The Monkeys Account Recovery\n"
 
-	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, user.Email, string(randomHash))
+	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, string(randomHash), user.Id)
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	message := []byte(subject + mime + emailBody)
 
@@ -229,12 +206,13 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	var pwr models.PasswordReset
 	var user models.TheMonkeysUser
 	var timeOut string
-	if err := s.dbCli.PsqlClient.QueryRow("SELECT email,recovery_hash, time_out FROM password_resets WHERE email=$1;", req.GetEmail()).
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT email,recovery_hash, time_out FROM pw_reset WHERE user_id=$1 ORDER BY id DESC LIMIT 1; ", req.GetId()).
 		Scan(&pwr.Email, &pwr.RecoveryHash, &timeOut); err != nil {
 		logrus.Errorf("cannot get the password recovery details, error: %v", err)
 		return nil, err
 	}
 
+	// TODO: Remove the following two line
 	logrus.Infof("PWR: %+v", pwr)
 	logrus.Infof("timeOut: %+v", timeOut)
 
@@ -251,7 +229,7 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
 	}
 
-	if err := s.dbCli.PsqlClient.QueryRow("SELECT id, email FROM users WHERE email=$1;", req.GetEmail()).
+	if err := s.dbCli.PsqlClient.QueryRow("SELECT id, email FROM the_monkeys_user WHERE id=$1;", req.GetId()).
 		Scan(&user.Id, &user.Email); err != nil {
 		logrus.Errorf("cannot get the password recovery details, error: %v", err)
 		return nil, err
@@ -287,7 +265,19 @@ func (srv *AuthServer) SendMail(email, verificationToken string) error {
 
 	return nil
 }
+func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
+	logrus.Infof("updating password for: %+v", req.Email)
 
+	encHash := utils.HashPassword(req.Password)
+	if err := s.dbCli.UpdatePassword(encHash, req.Email); err != nil {
+		return nil, err
+	}
+	return &pb.UpdatePasswordRes{
+		Status: http.StatusOK,
+	}, nil
+}
+
+// Verify email
 func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
 	var user models.TheMonkeysUser
 	var timeOut string

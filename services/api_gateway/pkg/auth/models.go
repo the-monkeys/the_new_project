@@ -19,3 +19,7 @@ type ForgetPass struct {
 type VerifyEmail struct {
 	Email string `json:"email"`
 }
+
+type UpdatePassword struct {
+	Password string `json:"password"`
+}

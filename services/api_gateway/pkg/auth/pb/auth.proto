@@ -35,6 +35,7 @@ message ValidateResponse {
   int64 status = 1;
   string error = 2;
   int64 userId = 3;
+  string user = 4;
 }
 
 message ForgotPasswordReq {
@@ -48,7 +49,7 @@ message ForgotPasswordRes {
 }
 
 message ResetPasswordReq {
-  string email = 1;
+  int64 id = 1;
   string token = 3;
 }
 
@@ -79,6 +80,17 @@ message EmailVerificationRes {
   string message = 3;
 }
 
+message UpdatePasswordReq {
+  string password = 1;
+  string email = 2;
+}
+
+message UpdatePasswordRes {
+  int64 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
@@ -87,4 +99,5 @@ service AuthService {
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
   rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
   rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
+  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
 }

@@ -1,6 +1,9 @@
 package utils
 
-func ResetPasswordTemplate(firstName, LastName, email, secret string) string {
+import "strconv"
+
+func ResetPasswordTemplate(firstName, LastName, secret string, id int64) string {
+	userId := strconv.FormatInt(id, 10)
 	return `<!DOCTYPE html PUBLIC>
 	<html xmlns="http://www.w3.org/1999/xhtml">
 	  <head>
@@ -470,7 +473,7 @@ func ResetPasswordTemplate(firstName, LastName, email, secret string) string {
 								  <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
 									<tr>
 									  <td align="center">
-										<a href="https://localhost:5001/api/v1/auth/resetpassword?user=` + email + `&evpw=` + secret + `" class="f-fallback button button--green" target="_blank">Reset your password</a>
+										<a href="https://localhost:5001/api/v1/auth/reset-password?user=` + userId + `&evpw=` + secret + `" class="f-fallback button button--green" target="_blank">Reset your password</a>
 									  </td>
 									</tr>
 								  </table>
