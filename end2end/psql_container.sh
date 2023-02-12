@@ -28,7 +28,7 @@ docker run -d --name $CONTAINER_NAME \
     -e POSTGRES_USER=$POSTGRES_USER \
     -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     -e POSTGRES_DB=$POSTGRES_DB \
-    -p 5432:5432 \
+    -p 5431:5432 \
     $IMAGE_NAME
 
 
@@ -43,9 +43,8 @@ docker cp psql/migration/. $CONTAINER_NAME:/psql/migration
 for FILE in $(ls psql/migration/*.up.sql | sort); do
     echo "Migrating file $FILE"
 #   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
-#   docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -f /$FILE
-    comd="psql -U root -d the_monkeys -f $FILE"
-    docker exec $CONTAINER_NAME sh -c "$comd"
+  docker exec $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PASSWORD -f /$FILE
+
 done
 
 
