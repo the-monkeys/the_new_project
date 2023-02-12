@@ -18,6 +18,8 @@ fi
 CONTAINER_NAME=subtle_art
 IMAGE_NAME=postgres:12-alpine
 
+OPENSEARCH_CONTAINER=art_of_writers
+OPENSEARCH_IMAGE=opensearchproject/opensearch:latest
 # Set the Postgres password
 POSTGRES_USER=root
 POSTGRES_PASSWORD=Secret
@@ -32,20 +34,30 @@ docker run -d --name $CONTAINER_NAME \
     $IMAGE_NAME
 
 
-echo "Docker container has been created and running!"
+sudo docker run -d --name $OPENSEARCH_CONTAINER -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" $OPENSEARCH_IMAGE
+
+
+echo "Docker containers have been created and running!"
 
 MIGRATION_DIR=psql/migration
 
-docker exec $CONTAINER_NAME mkdir -p $MIGRATION_DIR
-docker cp psql/migration/. $CONTAINER_NAME:/psql/migration
+# Install Golang Migrate
+curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.0/migrate.linux-amd64.tar.gz | tar xvz
+sudo mv migrate.linux-amd64 /usr/local/bin/migrate
+sudo chmod +x /usr/local/bin/migrate
 
-# Migrate the SQL files in order
-for FILE in $(ls psql/migration/*.up.sql | sort); do
-    echo "Migrating file $FILE"
-#   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
-  docker exec $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PASSWORD -f /$FILE
+migrate -path psql/migration -database "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@127.0.0.1:5432/$POSTGRES_DB?sslmode=disable" -verbose up
 
-done
+# docker exec $CONTAINER_NAME mkdir -p $MIGRATION_DIR
+# docker cp psql/migration/. $CONTAINER_NAME:/psql/migration
+
+# # Migrate the SQL files in order
+# for FILE in $(ls psql/migration/*.up.sql | sort); do
+#     echo "Migrating file $FILE"
+# #   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
+#   docker exec  $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PASSWORD -p 5431 -f $FILE
+
+# done
 
 
 # sql_files=$(ls $MIGRATION_DIR/*.up.sql)
