@@ -43,7 +43,7 @@ MIGRATION_DIR=psql/migration
 
 # Install Golang Migrate
 curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.0/migrate.linux-amd64.tar.gz | tar xvz
-sudo mv migrate.linux-amd64 /usr/local/bin/migrate
+sudo mv migrate /usr/local/bin/migrate
 sudo chmod +x /usr/local/bin/migrate
 
 migrate -path psql/migration -database "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@127.0.0.1:5432/$POSTGRES_DB?sslmode=disable" -verbose up
