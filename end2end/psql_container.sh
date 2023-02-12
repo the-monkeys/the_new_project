@@ -16,10 +16,10 @@ fi
 
 # Define the container name and image name
 CONTAINER_NAME=subtle_art
-IMAGE_NAME=postgres
+IMAGE_NAME=postgres:12-alpine
 
 # Set the Postgres password
-POSTGRES_USER=postgres
+POSTGRES_USER=root
 POSTGRES_PASSWORD=Secret
 POSTGRES_DB=the_monkeys
 
@@ -28,7 +28,7 @@ docker run -d --name $CONTAINER_NAME \
     -e POSTGRES_USER=$POSTGRES_USER \
     -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     -e POSTGRES_DB=$POSTGRES_DB \
-    -p 5432:5432 \
+    -p 5431:5432 \
     $IMAGE_NAME
 
 
@@ -36,12 +36,16 @@ echo "Docker container has been created and running!"
 
 MIGRATION_DIR=psql/migration
 
+docker exec $CONTAINER_NAME mkdir -p $MIGRATION_DIR
 docker cp psql/migration/. $CONTAINER_NAME:/psql/migration
 
 # Migrate the SQL files in order
 for FILE in $(ls psql/migration/*.up.sql | sort); do
-  echo "Migrating file $FILE"
-  docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
+    echo "Migrating file $FILE"
+#   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
+#   docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -f /$FILE
+    comd="psql -U root -d the_monkeys -f $FILE"
+    docker exec $CONTAINER_NAME sh -c "$comd"
 done
 
 
