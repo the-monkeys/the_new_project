@@ -18,8 +18,11 @@ fi
 CONTAINER_NAME=subtle_art
 IMAGE_NAME=postgres:12-alpine
 
+# OpenSearch Params
 OPENSEARCH_CONTAINER=art_of_writers
 OPENSEARCH_IMAGE=opensearchproject/opensearch:latest
+
+
 # Set the Postgres password
 POSTGRES_USER=root
 POSTGRES_PASSWORD=Secret
@@ -48,40 +51,6 @@ sudo chmod +x /usr/local/bin/migrate
 
 migrate -path psql/migration -database "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@127.0.0.1:5432/$POSTGRES_DB?sslmode=disable" -verbose up
 
-# docker exec $CONTAINER_NAME mkdir -p $MIGRATION_DIR
-# docker cp psql/migration/. $CONTAINER_NAME:/psql/migration
-
-# # Migrate the SQL files in order
-# for FILE in $(ls psql/migration/*.up.sql | sort); do
-#     echo "Migrating file $FILE"
-# #   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $FILE
-#   docker exec  $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -p $POSTGRES_PASSWORD -p 5431 -f $FILE
-
-# done
-
-
-# sql_files=$(ls $MIGRATION_DIR/*.up.sql)
-
-# echo "The following files are set to migrate."
-# echo $sql_files
-
-# # Loop through each SQL file and migrate it to the database
-# for file in $sql_files
-# do
-#   echo "Migrating $file..."
-
-#   # Use the docker exec command to run psql in the container and execute the SQL file
-#   docker exec -i $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=1 -f $file
-#     # docker exec -it $CONTAINER_NAME psql -U $POSTGRES_USER -d $POSTGRES_DB -f $file
-
-
-#   # Check the exit code of psql and exit the script if there was an error
-#   if [ $? -ne 0 ]
-#   then
-#     echo "Error migrating $file"
-#     exit 1
-#   fi
-# done
 
 echo "All migrations completed successfully."
 
