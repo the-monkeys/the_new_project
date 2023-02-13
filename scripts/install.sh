@@ -148,7 +148,7 @@ THE_MONKEYS_SERVICES=(
     "auth_service"
     "blogsandposts_service"
     "the_monkey_pg"
-    "user_profile"
+    "user_service"
 )
 
 # create a new user and group for the monkeys
