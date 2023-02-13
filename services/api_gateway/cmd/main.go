@@ -91,7 +91,7 @@ func (s *Server) start(ctx context.Context) {
 		}
 		tlsKey = os.Getenv("TLS_KEY")
 		if tlsKey == "" {
-			tlsKey = "/the_monkeys/vault/certs/key.pem"
+			tlsKey = "/the_monkeys/vault/certs/prv_key.pem"
 		}
 	}
 

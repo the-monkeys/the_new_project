@@ -42,8 +42,8 @@ function uninstallService()
     echo "rm -f $SERVICE_EXEC"
     rm -f "$SERVICE_EXEC"
 
-    echo "rm -f $MONKEY_ETC"
-    rm -f "$MONKEY_ETC"
+    echo "rm -rf $MONKEY_ETC"
+    rm -rf "$MONKEY_ETC"
 }
 
 THE_MONKEYS_SERVICES=(
