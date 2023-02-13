@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ${MONKEY_SCRIPTS}/common.sh
+
 set -x
 
 MONKEY_ROOT="/the_monkeys"

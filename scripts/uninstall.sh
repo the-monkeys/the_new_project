@@ -33,14 +33,17 @@ function uninstallService()
     # enable the service to start on boot
     systemctl disable $SERVICE_NAME
 
-    # reload systemd manager configuration
-    systemctl daemon-reload
-
     echo "rm -f /etc/systemd/system/$SERVICE_NAME.service"
     rm -f /etc/systemd/system/$SERVICE_NAME.service
 
+    # reload systemd manager configuration
+    systemctl daemon-reload
+
     echo "rm -f $SERVICE_EXEC"
     rm -f "$SERVICE_EXEC"
+
+    echo "rm -f $MONKEY_ETC"
+    rm -f "$MONKEY_ETC"
 }
 
 THE_MONKEYS_SERVICES=(

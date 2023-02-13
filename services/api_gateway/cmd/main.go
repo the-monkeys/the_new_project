@@ -64,6 +64,10 @@ func main() {
 }
 
 func (s *Server) start(ctx context.Context) {
+	// Test
+	testenv := os.Getenv("TESTENV")
+	logrus.Printf("TESTENV = %s\n", testenv)
+
 	// Get address and ports from env vars or fallback to defaults
 	bindAddr := os.Getenv("BIND")
 	if bindAddr == "" {

@@ -8,6 +8,12 @@ function installDependencies()
 {
     # Install packages:
     # - openssl
+    # - wget
+    # - go
+    # - nginx
+    # - opensearch
+    # - postgres
+    # - migrate
     :;
 }
 installDependencies
@@ -22,7 +28,7 @@ ROOT_CA_KEY_FILE="${CERTS_PATH}/root_ca_key.pem"
 CERT_FILE="${CERTS_PATH}/cert.pem"
 
 # STEP 1: Generate certs and key for TLS.
-# /the_monkeys/vault/certs/{cert.pem,key.pem}
+# /the_monkeys/vault/certs/{cert.pem,prv_key.pem}
 # OpenVPN.
 function installCerts()
 {
@@ -122,10 +128,11 @@ function installService()
     ExecStart=$SERVICE_EXEC
     Restart=always
     RestartSec=5s
+    EnvironmentFiles=$MONKEY_ENV_FILE
     [Install]
     WantedBy=multi-user.target
 EOF
-    
+
     # reload systemd manager configuration
     systemctl daemon-reload
     
@@ -145,6 +152,8 @@ THE_MONKEYS_SERVICES=(
     "user_profile"
 )
 
+echo "Setting environment variables..."
+echo "TESTENV=irakrigia123" >> $MONKEY_ENV_FILE
 echo "[Installing THE_MONKEYS services...]"
 for s in "${THE_MONKEYS_SERVICES[@]}"
 do

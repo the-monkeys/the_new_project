@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func LoadArtNPostConfig() (config Config, err error) {
-	viper.AddConfigPath("/etc/the_monkey")
+	viper.AddConfigPath("/the_monkey/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 
