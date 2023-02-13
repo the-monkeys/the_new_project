@@ -109,7 +109,6 @@ echo "[Installing THE_MONKEYS certs...]"
 installCerts
 
 # STEP 2: Install all the services
-
 function installService()
 {
     # change these variables to match your setup
@@ -123,7 +122,7 @@ function installService()
     [Unit]
     Description=$SERVICE_NAME daemon
     [Service]
-    User=$SERVICE_NAME
+    User=$MONKEY_USER
     WorkingDirectory=$SERVICE_WORKDIR
     ExecStart=$SERVICE_EXEC
     Restart=always
@@ -151,6 +150,9 @@ THE_MONKEYS_SERVICES=(
     "the_monkey_pg"
     "user_profile"
 )
+
+# create a new user and group for the monkeys
+useradd -r -s /bin/false "$MONKEY_USER"
 
 echo "Setting environment variables..."
 echo "TESTENV=irakrigia123" >> $MONKEY_ENV_FILE

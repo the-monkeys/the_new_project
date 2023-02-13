@@ -5,6 +5,8 @@ MONKEY_ROOT="/the_monkeys"
 MONKEY_ETC="${MONKEY_ROOT}/etc"
 MONKEY_ENV_FILE="${MONKEY_ETC}/dev.env"
 
+MONKEY_USER="the_monkeys"
+
 mkdir -p "$MONKEY_ROOT"
 mkdir -p "$MONKEY_ETC"
 touch $MONKEY_ENV_FILE
