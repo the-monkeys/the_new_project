@@ -18,6 +18,8 @@ function installDependencies()
 }
 installDependencies
 
+# TODO: Add all files in /the_monkeys to group 'the_monkeys'.
+
 CERTS_PATH="${MONKEY_ROOT}/vault/certs"
 CSR_CONFIG_FILE="${CERTS_PATH}/csr.conf"
 CERT_CONFIG_FILE="${CERTS_PATH}/cert.conf"
