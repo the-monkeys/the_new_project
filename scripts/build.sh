@@ -4,8 +4,6 @@ source ${MONKEY_SCRIPTS}/common.sh
 
 set -x
 
-MONKEY_ROOT="/the_monkeys"
-
 for dir in services/*/cmd
 do 
     # Split dir to get the service name

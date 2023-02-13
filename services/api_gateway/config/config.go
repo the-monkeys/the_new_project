@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func LoadGatewayConfig() (cfg Config, err error) {
-	viper.AddConfigPath("/the_monkey/etc")
+	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 
