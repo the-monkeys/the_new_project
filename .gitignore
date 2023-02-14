@@ -21,5 +21,7 @@ test/*.json
 
 
 env.sh
-certs/*.pem
+certs/*
+certs_old/*
 test/blogs.json
+.env

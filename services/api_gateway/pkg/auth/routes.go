@@ -20,17 +20,17 @@ type ServiceClient struct {
 	Log    logrus.Logger
 }
 
-func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
-	cc, err := grpc.Dial(cfg.AuthSvcUrl, grpc.WithInsecure())
+func InitServiceClient(cfg *config.Address) pb.AuthServiceClient {
+	cc, err := grpc.Dial(cfg.AuthService, grpc.WithInsecure())
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
 	}
 
-	logrus.Infof("The Gateway is dialing to auth gRPC server at: %v", cfg.AuthSvcUrl)
+	logrus.Infof("The Gateway is dialing to auth gRPC server at: %v", cfg.AuthService)
 	return pb.NewAuthServiceClient(cc)
 }
 
-func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
+func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 
 	asc := &ServiceClient{
 		Client: InitServiceClient(cfg),

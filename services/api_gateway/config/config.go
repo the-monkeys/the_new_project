@@ -5,15 +5,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config struct {
-	Port              string `mapstructure:"PORT"`
-	AuthSvcUrl        string `mapstructure:"AUTH_SVC_URL"`
-	ArticleSvcUrl     string `mapstructure:"STORY_SVC_URL"`
-	UserSvcUrl        string `mapstructure:"USER_SVC_URL"`
-	BlogAndPostSvcURL string `mapstructure:"BLOGANDPOSTS_SVC_URL"`
+type Address struct {
+	APIGatewayHTTPS string `mapstructure:"API_GATEWAY_HTTPS"`
+	APIGatewayHTTP  string `mapstructure:"API_GATEWAY_HTTP"`
+	AuthService     string `mapstructure:"AUTH_SERVICE"`
+	StoryService    string `mapstructure:"STORY_SERVICE"`
+	UserService     string `mapstructure:"USER_SERVICE"`
+	BlogService     string `mapstructure:"BLOG_SERVICE"`
 }
 
-func LoadGatewayConfig() (cfg Config, err error) {
+func LoadGatewayConfig() (cfg Address, err error) {
 	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")

@@ -19,16 +19,16 @@ type BlogServiceClient struct {
 	Client pb.BlogsAndPostServiceClient
 }
 
-func NewUserServiceClient(cfg *config.Config) pb.BlogsAndPostServiceClient {
-	cc, err := grpc.Dial(cfg.BlogAndPostSvcURL, grpc.WithInsecure())
+func NewUserServiceClient(cfg *config.Address) pb.BlogsAndPostServiceClient {
+	cc, err := grpc.Dial(cfg.BlogService, grpc.WithInsecure())
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}
-	logrus.Infof("The Gateway is dialing to post gRPC server at: %v", cfg.BlogAndPostSvcURL)
+	logrus.Infof("The Gateway is dialing to post gRPC server at: %v", cfg.BlogService)
 	return pb.NewBlogsAndPostServiceClient(cc)
 }
 
-func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *BlogServiceClient {
+func RegisterBlogRouter(router *gin.Engine, cfg *config.Address, authClient *auth.ServiceClient) *BlogServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	blogCli := &BlogServiceClient{

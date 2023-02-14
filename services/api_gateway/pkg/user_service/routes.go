@@ -22,16 +22,16 @@ type UserServiceClient struct {
 	Client pb.UserServiceClient
 }
 
-func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
-	cc, err := grpc.Dial(cfg.UserSvcUrl, grpc.WithInsecure())
+func NewUserServiceClient(cfg *config.Address) pb.UserServiceClient {
+	cc, err := grpc.Dial(cfg.UserService, grpc.WithInsecure())
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}
-	logrus.Infof("The Gateway is dialing to user gRPC server at: %v", cfg.UserSvcUrl)
+	logrus.Infof("The Gateway is dialing to user gRPC server at: %v", cfg.UserService)
 	return pb.NewUserServiceClient(cc)
 }
 
-func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *UserServiceClient {
+func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *auth.ServiceClient) *UserServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	usc := &UserServiceClient{
