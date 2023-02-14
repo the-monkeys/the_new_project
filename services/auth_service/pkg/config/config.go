@@ -3,7 +3,7 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	AuthAddr     string `mapstructure:"AUTH_SERVICE_PORT"`
+	AuthAddr     string `mapstructure:"AUTH_SERVICE"`
 	DBUrl        string `mapstructure:"DB_URL"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 
@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func LoadConfig() (config Config, err error) {
-	viper.AddConfigPath("/etc/the_monkey")
+	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 

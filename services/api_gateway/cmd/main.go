@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -59,50 +57,36 @@ func main() {
 	user_service.RegisterUserRouter(server.router, &cfg, authClient)
 	blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
 
-	server.start(context.Background())
+	server.start(context.Background(), cfg)
 
 }
 
-func (s *Server) start(ctx context.Context) {
-	// Get address and ports from env vars or fallback to defaults
-	bindAddr := os.Getenv("BIND")
-	if bindAddr == "" {
-		bindAddr = "127.0.0.1"
-	}
-	httpPort, _ := strconv.Atoi(os.Getenv("HTTP_PORT"))
-	if httpPort == 0 {
-		httpPort = 5000
-	}
-	httpsPort, _ := strconv.Atoi(os.Getenv("HTTPS_PORT"))
-	if httpsPort == 0 {
-		httpsPort = 5001
-	}
-
+func (s *Server) start(ctx context.Context, addr config.Address) {
 	// TLS certificate and key
 	var tlsCert, tlsKey string
 	if os.Getenv("NO_TLS") != "1" {
 		tlsCert = os.Getenv("TLS_CERT")
 		if tlsCert == "" {
-			tlsCert = "certs/cert.pem"
+			tlsCert = "/the_monkeys/vault/certs/server.crt"
 		}
 		tlsKey = os.Getenv("TLS_KEY")
 		if tlsKey == "" {
-			tlsKey = "certs/key.pem"
+			tlsKey = "/the_monkeys/vault/certs/server.key"
 		}
 	}
 
 	// Launch the server (this is a blocking call)
-	s.launchServer(ctx, bindAddr, httpPort, httpsPort, tlsCert, tlsKey)
+	s.launchServer(ctx, addr, tlsCert, tlsKey)
 }
 
 // Start the server
-func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, httpsPort int, tlsCert, tlsKey string) {
+func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert, tlsKey string) {
 	// If we don't have a TLS certificate, don't enable TLS
 	enableTLS := (tlsCert != "" && tlsKey != "")
 
 	// HTTP server (no TLS)
 	httpSrv := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", bindAddr, httpPort),
+		Addr:           addr.APIGatewayHTTP,
 		Handler:        s.router,
 		MaxHeaderBytes: 1 << 20,
 		ReadTimeout:    10 * time.Second,
@@ -111,7 +95,7 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 
 	// HTTPS server (with TLS)
 	httpsSrv := &http.Server{
-		Addr:           fmt.Sprintf("%s:%d", bindAddr, httpsPort),
+		Addr:           addr.APIGatewayHTTPS,
 		Handler:        s.router,
 		MaxHeaderBytes: 1 << 20,
 		ReadTimeout:    10 * time.Second,
@@ -120,7 +104,7 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		logrus.Printf("HTTP server listening at http://%s:%d\n", bindAddr, httpPort)
+		logrus.Printf("HTTP server listening at http://%s\n", addr.APIGatewayHTTP)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {
@@ -131,7 +115,7 @@ func (s *Server) launchServer(ctx context.Context, bindAddr string, httpPort, ht
 	// Start the HTTPS server in a background goroutine
 	if enableTLS {
 		go func() {
-			logrus.Printf("HTTPS server listening at https://%s:%d\n", bindAddr, httpsPort)
+			logrus.Printf("HTTPS server listening at https://%s\n", addr.APIGatewayHTTPS)
 			err := httpsSrv.ListenAndServeTLS(tlsCert, tlsKey)
 			if err != http.ErrServerClosed {
 				panic(err)

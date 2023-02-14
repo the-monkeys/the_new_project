@@ -6,15 +6,14 @@ import (
 )
 
 type Config struct {
-	ArticleServerPort string `mapstructure:"ARTICLE_SERVICE_PORT"`
 	OSAddress         string `mapstructure:"OPENSEARCH_ADDRESS"`
 	OSUsername        string `mapstructure:"OSUSERNAME"`
 	OSPassword        string `mapstructure:"OSPASSWORD"`
-	BlogAndPostSvcURL string `mapstructure:"BLOGANDPOSTS_SVC_URL"`
+	BlogAndPostSvcURL string `mapstructure:"BLOG_SERVICE"`
 }
 
 func LoadArtNPostConfig() (config Config, err error) {
-	viper.AddConfigPath("/etc/the_monkey")
+	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 

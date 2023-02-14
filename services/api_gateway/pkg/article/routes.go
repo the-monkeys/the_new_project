@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func RegisterArticleRoutes(r *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) {
+func RegisterArticleRoutes(r *gin.Engine, cfg *config.Address, authClient *auth.ServiceClient) {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	svc := &ArticleServiceClient{

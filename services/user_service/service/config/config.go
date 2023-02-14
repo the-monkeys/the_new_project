@@ -3,12 +3,12 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	UserSrvPort string `mapstructure:"USER_SERVICE_PORT"`
+	UserSrvPort string `mapstructure:"USER_SERVICE"`
 	DBUrl       string `mapstructure:"DB_URL"`
 }
 
 func LoadUserConfig() (config Config, err error) {
-	viper.AddConfigPath("/etc/the_monkey")
+	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 

@@ -1,9 +1,10 @@
 #!/bin/bash
 
+source ${MONKEY_SCRIPTS}/common.sh
+
 set -x
 
-for dir in services/*/cmd; 
-
+for dir in services/*/cmd
 do 
     # Split dir to get the service name
     IFS='/'
@@ -14,9 +15,6 @@ do
     IFS=' '
     read -ra ADDR <<<$microservice_name
 
-    (cd "$dir" && go build -o "/usr/local/bin/the_monkeys/$microservice_name"); 
+    echo "Build the $microservice_name"
+    (cd "$dir" && go build -o "${MONKEY_ROOT}/bin/$microservice_name"); 
 done
-
-
-
-# restart services to load the new code changes

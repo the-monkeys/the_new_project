@@ -17,9 +17,11 @@
 ./api_gateway/config/dev.env
 
 
-test/article1.json
+test/*.json
 
 
 env.sh
-certs/*.pem
+certs/*
+certs_old/*
 test/blogs.json
+.env
