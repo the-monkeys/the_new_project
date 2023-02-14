@@ -74,7 +74,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	}
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
-	return &pb.RegisterResponse{Status: http.StatusOK, Error: "registered successfully"}, nil
+	return &pb.RegisterResponse{Status: http.StatusCreated, Error: ""}, nil
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
@@ -137,13 +137,6 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 			Error:  "User not found",
 		}, nil
 	}
-
-	// if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
-	// 	return &pb.ValidateResponse{
-	// 		Status: http.StatusNotFound,
-	// 		Error:  "User not found",
-	// 	}, nil
-	// }
 
 	return &pb.ValidateResponse{
 		Status: http.StatusOK,
@@ -265,6 +258,7 @@ func (srv *AuthServer) SendMail(email, verificationToken string) error {
 
 	return nil
 }
+
 func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
 	logrus.Infof("updating password for: %+v", req.Email)
 
