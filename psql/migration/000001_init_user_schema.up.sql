@@ -12,11 +12,11 @@ CREATE TABLE IF NOT EXISTS the_monkeys_user
     is_active boolean,
     role integer,
     last_login text,
-    country_code text,
-    mobile_no text,
-    about text,
-    instagram text,
-    twitter text,
+    country_code text DEFAULT 'none',
+    mobile_no text DEFAULT 'none',
+    about text DEFAULT 'none',
+    instagram text DEFAULT 'none',
+    twitter text DEFAULT 'none',
 
     email_verified boolean,
     email_verification_token text,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS pw_reset
 (
     id SERIAL ,
     user_id bigint NOT NULL,
-    email text ,
+    email text,
     recovery_hash text ,
     time_out timestamp with time zone,
     -- TODO: rename last_password_reset to password_reset_time
