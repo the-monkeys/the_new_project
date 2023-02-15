@@ -23,7 +23,8 @@ We're glad you're thinking about contributing to The Monkeys. If you think somet
 
  # Native installation steps
  1. Export scripts directory:
-   - `export MONKEY_SCRIPTS=the_new_project/scripts/`
+  NOTE: move the the_newproject root and then run the ewxport command
+   - `export MONKEY_SCRIPTS=$PWD/scripts/`
  
  2. Build the services:
    - `./scripts/build.sh`
