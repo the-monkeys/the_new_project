@@ -78,6 +78,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	logrus.Infof("user %s has requested to login", req.Email)
 	var user models.TheMonkeysUser
 
 	// Check if the email exists
@@ -146,6 +147,7 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 }
 
 func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
+	logrus.Infof("user %s has requested forgotten their password", req.Email)
 	user, err := s.dbCli.GetNamesEmailFromEmail(req)
 	if err != nil {
 		logrus.Errorf("error occurred while finding the user %s, error: %v", req.Email, err)
@@ -196,6 +198,7 @@ func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordR
 }
 
 func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+	logrus.Infof("user %d has requested to reset their password", req.Id)
 	var pwr models.PasswordReset
 	var user models.TheMonkeysUser
 	var timeOut string
@@ -206,8 +209,8 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	}
 
 	// TODO: Remove the following two line
-	logrus.Infof("PWR: %+v", pwr)
-	logrus.Infof("timeOut: %+v", timeOut)
+	// logrus.Infof("PWR: %+v", pwr)
+	// logrus.Infof("timeOut: %+v", timeOut)
 
 	timeTill, err := time.Parse(time.RFC3339, timeOut)
 
