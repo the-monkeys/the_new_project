@@ -69,9 +69,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	}
 
 	// Send email verification main
-	if err = s.SendMail(user.Email, hash); err != nil {
-		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
-	}
+	go s.SendMail(user.Email, hash)
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
 	return &pb.RegisterResponse{Status: http.StatusCreated, Error: ""}, nil
