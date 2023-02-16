@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"os"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
@@ -10,8 +9,8 @@ import (
 var Address string
 
 func init() {
-	Address = os.Getenv("ADDRESS")
-	logrus.Infof("Verification address: %v", Address)
+	Address = "0.0.0.0:8080"
+	logrus.Infof("email verification address: %v", Address)
 }
 
 func ResetPasswordTemplate(firstName, LastName, secret string, id int64) string {
@@ -516,68 +515,112 @@ func EmailVerificationHTML(email, secret string) string {
 	return `<!DOCTYPE html>
 	<html>
 	<head>
-		<title>Email Verification</title>
-		<style>
-			body {
-				font-family: Arial, sans-serif;
-				background-color: #f2f2f2;
-				padding: 20px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				height: 100vh;
-			}
-			.container {
-				background-color: #fff;
-				max-width: 600px;
-				padding: 20px;
-				border-radius: 5px;
-				box-shadow: 0px 0px 10px 0px rgba(170, 185, 170, 0.904);
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-			}
-			.header {
-				display: flex;
-				align-items: center;
-				margin-bottom: 20px;
-			}
-			.logo {
-				height: 40px;
-				margin-right: 10px;
-			}
-			h1 {
-				margin-top: 0;
-				text-align: center;
-			}
-			p {
-				margin: 20px 0;
-				line-height: 1.5;
-				text-align: center;
-			}
-			.btn {
-				display: inline-block;
-				background-color: #437e13;
-				color: #ffffff;
-				padding: 10px 20px;
-				text-decoration: none;
-				border-radius: 5px;
-				margin: 20px 0;
-			}
-		</style>
+	
+	  <meta charset="utf-8">
+	  <meta http-equiv="x-ua-compatible" content="ie=edge">
+	  <title>The Monkeys</title>
+	  <meta name="viewport" content="width=device-width, initial-scale=1">
+	  <style type="text/css">
+	  
+	  </style>
+	
 	</head>
-	<body>
-		<div class="container">
-			<div class="header">
-				<h1>The Monkeys</h1>
-			</div>
-			<p>Thank you for signing up! Please click the button below to verify your email address:</p>
-			<form method="post" action="https://` + Address + `/api/v1/auth/verify-email?user=` + email + `&evpw=` + secret + `" target="_blank">
-				<button type="submit" class="btn">Verify Email Address</button>
-			</form>
-			<p>If you did not sign up for this account, please ignore this email.</p>
-		</div>
+	<body style="background-color: #e9ecef;">
+	
+		<div style="display: none; font-size: 1px; color: #fefefe; line-height: 1px; font-family: 'Lato', Helvetica, Arial, sans-serif; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;"> We're thrilled to have you here! Get ready to dive into your new account. </div>
+		<table border="0" cellpadding="0" cellspacing="0" width="100%">
+			<!-- LOGO -->
+			<tr>
+				<td bgcolor="#FFA73B" align="center">
+					<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+						<tr>
+							<td align="center" valign="top" style="padding: 40px 10px 40px 10px;"> </td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td bgcolor="#FFA73B" align="center" style="padding: 0px 10px 0px 10px;">
+					<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+						<tr>
+							<td bgcolor="#ffffff" align="center" valign="top" style="padding: 40px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; letter-spacing: 4px; line-height: 48px;">
+								<h1 style="font-size: 48px; font-weight: 400; margin: 2;">The Monkeys</h1> <img src=" https://img.icons8.com/clouds/100/000000/handshake.png" width="125" height="120" style="display: block; border: 0px;" />
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td bgcolor="#f4f4f4" align="center" style="padding: 0px 10px 0px 10px;">
+					<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+						<tr>
+							<td bgcolor="#ffffff" align="left" style="padding: 20px 30px 40px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<p style="margin: 0;">We're excited to have you get started. First, you need to confirm your account. Just press the button below.</p>
+							</td>
+						</tr>
+						<tr>
+							<td bgcolor="#ffffff" align="left">
+								<table width="100%" border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td bgcolor="#ffffff" align="center" style="padding: 20px 30px 60px 30px;">
+											<table border="0" cellspacing="0" cellpadding="0">
+												<tr>
+													<td align="center" style="border-radius: 3px;" bgcolor="#FFA73B"><a href="https://` + Address + `/api/v1/auth/verify-email?user=` + email + `&evpw=` + secret + `" target="_blank" style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #FFA73B; display: inline-block;">Confirm Account</a></td>
+												</tr>
+											</table>
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr> <!-- COPY -->
+						<tr>
+							<td bgcolor="#ffffff" align="left" style="padding: 0px 30px 0px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<p style="margin: 0;">If that doesn't work, copy and paste the following link in your browser:</p>
+							</td>
+						</tr> <!-- COPY -->
+						<tr>
+							<td bgcolor="#ffffff" align="left" style="padding: 20px 30px 20px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<p style="margin: 0;"><a href="https://` + Address + `/api/v1/auth/verify-email?user=` + email + `&evpw=` + secret + `" target="_blank" style="color: #FFA73B;">https://` + Address + `/api/v1/auth/verify-email?user=` + email + `&evpw=` + secret + `</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td bgcolor="#ffffff" align="left" style="padding: 0px 30px 20px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<p style="margin: 0;">If you have any questions, just reply to this email—we're always happy to help out.</p>
+							</td>
+						</tr>
+						<tr>
+							<td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<p style="margin: 0;">Cheers,<br>The Monkeys Team</p>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td bgcolor="#f4f4f4" align="center" style="padding: 30px 10px 0px 10px;">
+					<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+						<tr>
+							<td bgcolor="#FFECD1" align="center" style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;">
+								<h2 style="font-size: 20px; font-weight: 400; color: #111111; margin: 0;">Need more help?</h2>
+								<p style="margin: 0;"><a href="themonkeys.life" target="_blank" style="color: #FFA73B;">We&rsquo;re here to help you out</a></p>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td bgcolor="#f4f4f4" align="center" style="padding: 0px 10px 0px 10px;">
+					<table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
+						<tr>
+							<td bgcolor="#f4f4f4" align="left" style="padding: 0px 30px 30px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 18px;"> <br>
+								<p style="margin: 0;">If these emails get annoying, please feel free to <a href="#" target="_blank" style="color: #111111; font-weight: 700;">unsubscribe</a>.</p>
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	
 	</body>
 	</html>`
 }

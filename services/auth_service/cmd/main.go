@@ -14,7 +14,6 @@ import (
 
 func main() {
 	cfg, err := config.LoadConfig()
-
 	if err != nil {
 		logrus.Fatalf("cannot load auth service config, error: %v", err)
 	}

@@ -68,10 +68,8 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 		return nil, err
 	}
 
-	// Send email verification main
-	if err = s.SendMail(user.Email, hash); err != nil {
-		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
-	}
+	// Send email verification mail as a routine else the register api gets slower
+	go s.SendMail(user.Email, hash)
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
 	return &pb.RegisterResponse{Status: http.StatusCreated, Error: ""}, nil
@@ -278,7 +276,7 @@ func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordR
 func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
 	var user models.TheMonkeysUser
 	var timeOut string
-	logrus.Infof("verifying email for: %s", req.GetEmail())
+	logrus.Infof("verifying email: %s", req.GetEmail())
 
 	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
 		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
@@ -315,6 +313,7 @@ func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*
 		return nil, err
 	}
 
+	logrus.Infof("verified email: %s", req.GetEmail())
 	return &pb.VerifyEmailRes{
 		Status: 200,
 		Error:  "",

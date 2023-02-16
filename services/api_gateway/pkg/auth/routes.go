@@ -42,7 +42,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 	routes.POST("/login", asc.Login)
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
-	routes.POST("/verify-email", asc.VerifyEmail)
+	routes.GET("/verify-email", asc.VerifyEmail)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
