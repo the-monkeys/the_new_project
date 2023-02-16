@@ -212,7 +212,7 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	}
 
 	token, _ := s.jwt.GenerateToken(user)
-	logrus.Infof("password is set and token generated for %s", req.Id)
+	logrus.Infof("password is set and token generated for %d", req.Id)
 
 	return &pb.ResetPasswordRes{
 		Status: 200,
