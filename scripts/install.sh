@@ -163,4 +163,6 @@ for s in "${THE_MONKEYS_SERVICES[@]}"
 do
     echo "Installing service: ${s}"
     installService "$s"
+
 done
+

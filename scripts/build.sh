@@ -17,4 +17,6 @@ do
 
     echo "Build the $microservice_name"
     (cd "$dir" && go build -o "${MONKEY_ROOT}/bin/$microservice_name"); 
+
 done
+
