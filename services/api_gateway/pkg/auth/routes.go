@@ -40,8 +40,11 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
+
+	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
+
 	routes.GET("/verify-email", asc.VerifyEmail)
 
 	mware := InitAuthMiddleware(asc)
@@ -217,8 +220,8 @@ func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	logrus.Infof("Password: %v", pass.Password)
-	logrus.Infof("res: %+v", res)
+	// logrus.Infof("Password: %v", pass.Password)
+	// logrus.Infof("res: %+v", res)
 	passResp, err := asc.Client.UpdatePassword(context.Background(), &pb.UpdatePasswordReq{
 		Password: pass.Password,
 		Email:    res.User,
