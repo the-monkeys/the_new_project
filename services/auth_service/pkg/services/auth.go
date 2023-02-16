@@ -68,16 +68,16 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 		return nil, err
 	}
 
-	// Send email verification main
-	if err = s.SendMail(user.Email, hash); err != nil {
-		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
-	}
+	// Send email verification mail as a routine else the register api gets slower
+	emailBody := utils.EmailVerificationHTML(user.Email, hash)
+	go s.SendMail(user.Email, emailBody)
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
-	return &pb.RegisterResponse{Status: http.StatusOK, Error: "registered successfully"}, nil
+	return &pb.RegisterResponse{Status: http.StatusCreated, Error: ""}, nil
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	logrus.Infof("user %s has requested to login", req.Email)
 	var user models.TheMonkeysUser
 
 	// Check if the email exists
@@ -138,13 +138,6 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 		}, nil
 	}
 
-	// if result := s.dbCli.GormClient.Where(&models.TheMonkeysUser{Email: claims.Email}).First(&user); result.Error != nil {
-	// 	return &pb.ValidateResponse{
-	// 		Status: http.StatusNotFound,
-	// 		Error:  "User not found",
-	// 	}, nil
-	// }
-
 	return &pb.ValidateResponse{
 		Status: http.StatusOK,
 		UserId: user.Id,
@@ -153,6 +146,8 @@ func (s *AuthServer) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb
 }
 
 func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
+	logrus.Infof("user %s has forgotten their password", req.Email)
+
 	user, err := s.dbCli.GetNamesEmailFromEmail(req)
 	if err != nil {
 		logrus.Errorf("error occurred while finding the user %s, error: %v", req.Email, err)
@@ -173,28 +168,8 @@ func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordR
 		return nil, err
 	}
 
-	// **********************************SEND EMAIL WITH PW RESET LINK***************************************
-	fromEmail := s.config.SMTPMail        //ex: "John.Doe@gmail.com"
-	smtpPassword := s.config.SMTPPassword // ex: "ieiemcjdkejspqz"
-	address := s.config.SMTPAddress
-	to := []string{req.Email}
-
-	subject := "Subject: The Monkeys Account Recovery\n"
-
 	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, string(randomHash), user.Id)
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	message := []byte(subject + mime + emailBody)
-
-	auth := smtp.PlainAuth("", fromEmail, smtpPassword, s.config.SMTPHost)
-
-	if err = smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
-		logrus.Errorf("error occurred while sending verification email, error: %+v", err)
-		return &pb.ForgotPasswordRes{
-			Status: int64(codes.Internal),
-			Error:  "cannot send email, please provide correct email id",
-		}, nil
-
-	}
+	go s.SendMail(req.Email, emailBody)
 
 	return &pb.ForgotPasswordRes{
 		Status: 200,
@@ -203,6 +178,7 @@ func (s *AuthServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordR
 }
 
 func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+	logrus.Infof("user %d has requested to reset their password", req.Id)
 	var pwr models.PasswordReset
 	var user models.TheMonkeysUser
 	var timeOut string
@@ -213,8 +189,8 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	}
 
 	// TODO: Remove the following two line
-	logrus.Infof("PWR: %+v", pwr)
-	logrus.Infof("timeOut: %+v", timeOut)
+	// logrus.Infof("PWR: %+v", pwr)
+	// logrus.Infof("timeOut: %+v", timeOut)
 
 	timeTill, err := time.Parse(time.RFC3339, timeOut)
 
@@ -236,6 +212,8 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	}
 
 	token, _ := s.jwt.GenerateToken(user)
+	logrus.Infof("password is set and token generated for %d", req.Id)
+
 	return &pb.ResetPasswordRes{
 		Status: 200,
 		Error:  "",
@@ -243,15 +221,16 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 	}, nil
 }
 
-func (srv *AuthServer) SendMail(email, verificationToken string) error {
+func (srv *AuthServer) SendMail(email, emailBody string) error {
+	logrus.Infof("Send mail routine triggered")
+
 	fromEmail := srv.config.SMTPMail        //ex: "John.Doe@gmail.com"
 	smtpPassword := srv.config.SMTPPassword // ex: "ieiemcjdkejspqz"
 	address := srv.config.SMTPAddress
 	to := []string{email}
 
-	subject := "Subject: The Monkeys Account Recovery\n"
+	subject := "Subject: The Monkeys support\n"
 
-	emailBody := utils.EmailVerificationHTML(email, verificationToken)
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	message := []byte(subject + mime + emailBody)
 
@@ -265,6 +244,7 @@ func (srv *AuthServer) SendMail(email, verificationToken string) error {
 
 	return nil
 }
+
 func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
 	logrus.Infof("updating password for: %+v", req.Email)
 
@@ -272,6 +252,7 @@ func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordR
 	if err := s.dbCli.UpdatePassword(encHash, req.Email); err != nil {
 		return nil, err
 	}
+	logrus.Infof("updated password for: %+v", req.Email)
 	return &pb.UpdatePasswordRes{
 		Status: http.StatusOK,
 	}, nil
@@ -281,7 +262,7 @@ func (s *AuthServer) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordR
 func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
 	var user models.TheMonkeysUser
 	var timeOut string
-	logrus.Infof("verifying email for: %s", req.GetEmail())
+	logrus.Infof("verifying email: %s", req.GetEmail())
 
 	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
 		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
@@ -318,6 +299,7 @@ func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*
 		return nil, err
 	}
 
+	logrus.Infof("verified email: %s", req.GetEmail())
 	return &pb.VerifyEmailRes{
 		Status: 200,
 		Error:  "",
@@ -329,7 +311,7 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 	if req.Email == "" {
 		return nil, common.BadRequest
 	}
-
+	logrus.Infof("user %v has requested for email verification", req.Email)
 	var user models.TheMonkeysUser
 	var timeOut string
 
@@ -356,6 +338,7 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
 		return nil, err
 	}
+	logrus.Infof("email %v is verified", req.Email)
 
 	return &pb.EmailVerificationRes{
 		Status:  http.StatusOK,

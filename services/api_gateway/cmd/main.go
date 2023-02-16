@@ -67,11 +67,11 @@ func (s *Server) start(ctx context.Context, addr config.Address) {
 	if os.Getenv("NO_TLS") != "1" {
 		tlsCert = os.Getenv("TLS_CERT")
 		if tlsCert == "" {
-			tlsCert = "/the_monkeys/vault/certs/server.crt"
+			tlsCert = "/the_monkeys/vault/certs/cert.pem"
 		}
 		tlsKey = os.Getenv("TLS_KEY")
 		if tlsKey == "" {
-			tlsKey = "/the_monkeys/vault/certs/server.key"
+			tlsKey = "/the_monkeys/vault/certs/prv_key.pem"
 		}
 	}
 
