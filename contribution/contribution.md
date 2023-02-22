@@ -14,22 +14,23 @@ We're glad you're thinking about contributing to The Monkeys. If you think somet
 NOTE: Have a config file in `/etc/the_monkey/dev.env` if you are using Linux/Mac. In case if you have a Windows machine you can keep the dev.env in your fav directory and set up the path `services/api_gateway/config/config.go` file and other `config.go` files in different microservice.
 
 ```
-PORT=0.0.0.0:5001
-AUTH_SVC_URL=localhost:50051
-STORY_SVC_URL=localhost:50052
-USER_SVC_URL=localhost:50053
+API_GATEWAY_HTTPS=0.0.0.0:port1
+API_GATEWAY_HTTP=0.0.0.0:port2
+AUTH_SERVICE=127.0.0.1:port3
+STORY_SERVICE=127.0.0.1:port4
+USER_SERVICE=127.0.0.1:port5
+BLOG_SERVICE=127.0.0.1:port6
 
+# Postgres
+DB_URL=postgres://username:password@host:port/database?sslmode=disable
 
-AUTH_SERVICE_PORT=:50051
-DB_URL=postgres://user:password@localhost:5432/dbname
-JWT_SECRET_KEY=secret_key
+# Auth JWT token
+JWT_SECRET_KEY=r43t18sc
 
-ARTICLE_SERVICE_PORT=:50052
-OPENSEARCH_ADDRESS=https://localhost:9200
-OSUSERNAME=username
-OSPASSWORD=password
-
-USER_SERVICE_PORT=:50053
+# Opensearch and Elasticsearch
+OPENSEARCH_ADDRESS=https://address:port
+OSUSERNAME=admin
+OSPASSWORD=admin
 
 ```
 
