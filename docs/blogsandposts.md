@@ -1,7 +1,7 @@
 ## Create a blog
 
 ```
-curl --location --request POST 'http://localhost:5001/api/v1/post/create' \
+curl --location --request POST 'https://test-apis.camdvr.org:8080/api/v1/post/create' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDU3NjI2MjAsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6NCwiRW1haWwiOiJkYXZldHdlZXRsaXZlQGdtYWlsLmNvbSJ9.K1s0WQ7oyTkD77ZAIDgGAMyWypOzCZxf1CxU0-Kkj6o' \
 --header 'Content-Type: application/json' \
 --data-raw '{
