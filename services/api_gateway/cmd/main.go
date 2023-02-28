@@ -108,6 +108,7 @@ func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert,
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {
+			logrus.Errorf("cannot start the http server, error: %+v", err)
 			panic(err)
 		}
 	}()
@@ -118,6 +119,7 @@ func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert,
 			logrus.Printf("HTTPS server listening at https://%s\n", addr.APIGatewayHTTPS)
 			err := httpsSrv.ListenAndServeTLS(tlsCert, tlsKey)
 			if err != http.ErrServerClosed {
+				logrus.Errorf("cannot start the http server, error: %+v", err)
 				panic(err)
 			}
 		}()

@@ -31,6 +31,16 @@ type GetArticleResp struct {
 	ViewedBy   string `json:"viewed_by"`
 }
 
+// type Last100Articles struct {
+// 	AuthorName string    `json:"author_name"`
+// 	ContentRaw string    `json:"content_raw"`
+// 	CreateTime time.Time `json:"create_time"`
+// 	ID         string    `json:"id"`
+// 	Title      string    `json:"title"`
+// 	AuthorID   string    `json:"author_id"`
+// }
+
+// Needs to be deleted
 type Last100Articles struct {
 	Took     int  `json:"took"`
 	TimedOut bool `json:"timed_out"`

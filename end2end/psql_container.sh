@@ -15,11 +15,11 @@ else
 fi
 
 # Define the container name and image name
-CONTAINER_NAME=subtle_art
+CONTAINER_NAME=hungry_galileo
 IMAGE_NAME=postgres:12-alpine
 
 # OpenSearch Params
-OPENSEARCH_CONTAINER=art_of_writers
+OPENSEARCH_CONTAINER=condescending_monkey
 OPENSEARCH_IMAGE=opensearchproject/opensearch:latest
 
 
@@ -29,15 +29,15 @@ POSTGRES_PASSWORD=Secret
 POSTGRES_DB=the_monkeys
 
 # Create and run the container
-docker run -d --name $CONTAINER_NAME \
+docker run --restart always -d --name $CONTAINER_NAME \
     -e POSTGRES_USER=$POSTGRES_USER \
     -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     -e POSTGRES_DB=$POSTGRES_DB \
     -p 5432:5432 \
     $IMAGE_NAME
 
-
-sudo docker run -d --name $OPENSEARCH_CONTAINER -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" $OPENSEARCH_IMAGE
+--restart always
+sudo docker run --restart always -d --name $OPENSEARCH_CONTAINER -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" $OPENSEARCH_IMAGE
 
 
 echo "Docker containers have been created and running!"
