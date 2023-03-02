@@ -15,7 +15,7 @@ Thank you for visiting our platform. We hope you find it informative and educati
 <br>
 
 # The current architecture diagram.
-![alt text](docs/current_architecture.jpg)
+![the monkeys](static/the_monkeys.jpg)
 
 
 # Contribution Guidelines:
