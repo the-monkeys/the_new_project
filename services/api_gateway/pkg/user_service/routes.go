@@ -43,6 +43,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 	routes.POST("/user/:id", usc.UpdateProfile)
 	routes.POST("/user/pic/:id", usc.UpdateProfilePic)
 	routes.GET("/user/pic/:id", usc.GetProfilePic)
+	routes.POST("/user/deactivate/:id", usc.DeleteMyAccount)
 
 	return usc
 }
@@ -150,7 +151,6 @@ func (asc *UserServiceClient) UpdateProfilePic(ctx *gin.Context) {
 	ctx.JSON(http.StatusAccepted, "uploaded")
 }
 
-// TODO: Handle 404 error it's throwing error
 func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 	// get id
 	id := ctx.Param("id")
@@ -179,4 +179,23 @@ func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 
 	ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
 	ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
+}
+
+func (asc *UserServiceClient) DeleteMyAccount(ctx *gin.Context) {
+	// get id
+	id := ctx.Param("id")
+	userId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	res, err := asc.Client.DeleteMyProfile(context.Background(), &pb.DeleteMyAccountReq{Id: userId})
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		errors.RestError(ctx, err, "user_service")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }

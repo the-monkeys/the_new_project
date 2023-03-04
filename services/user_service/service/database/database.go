@@ -116,3 +116,30 @@ func (uh *UserDbHandler) UploadProfilePic(pic []byte, id int64) error {
 
 	return nil
 }
+
+func (uh *UserDbHandler) DeactivateMyAccount(id int64) error {
+	stmt, err := uh.Psql.Prepare(`UPDATE the_monkeys_user SET deactivated=true WHERE id=$1`)
+	if err != nil {
+		uh.log.Errorf("cannot prepare deactivate profile statement, error: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(id)
+	if err != nil {
+		uh.log.Errorf("cannot execute deactivate profile statement, error: %v", err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %d, error: %v", id, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %d, error: %v", id, err)
+		return errors.New("more or less than 1 row is affected")
+	}
+
+	return nil
+}
