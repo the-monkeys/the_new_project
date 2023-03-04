@@ -338,9 +338,9 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 	var user models.TheMonkeysUser
 	var timeOut string
 
-	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
+	if err := s.dbCli.PsqlClient.QueryRow(`SELECT id, email, email_verification_token, email_verification_timeout 
 		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
-		Scan(&user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
+		Scan(&user.Id, &user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
 		logrus.Errorf("cannot get the user details to verify email, error: %v", err)
 		return nil, err
 	}
@@ -356,12 +356,10 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 		return nil, err
 	}
 
+	emailBody := utils.EmailVerificationHTML(user.Email, hash)
 	logrus.Infof("Sending verification email to: %s", req.GetEmail())
-	if err := s.SendMail(user.Email, hash); err != nil {
-		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
-		return nil, err
-	}
-	logrus.Infof("email %v is verified", req.Email)
+	// TODO: Handle error of the go routine
+	go s.SendMail(user.Email, emailBody)
 
 	return &pb.EmailVerificationRes{
 		Status:  http.StatusOK,

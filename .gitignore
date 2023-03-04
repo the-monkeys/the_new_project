@@ -25,3 +25,4 @@ certs/*
 certs_old/*
 test/blogs.json
 .env
+tracker
