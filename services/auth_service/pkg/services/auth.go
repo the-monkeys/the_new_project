@@ -13,7 +13,6 @@ import (
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/pb"
 	"github.com/89minutes/the_new_project/services/auth_service/pkg/utils"
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -51,7 +50,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	hash := string(utils.GenHash())
 	encHash := utils.HashPassword(hash)
 
-	user.UUID = uuid.NewString()
+	user.UUID = utils.GetUUID()
 	user.FirstName = req.GetFirstName()
 	user.LastName = req.GetLastName()
 	user.Email = req.GetEmail()
@@ -73,7 +72,22 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	go s.SendMail(user.Email, emailBody)
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
-	return &pb.RegisterResponse{Status: http.StatusCreated, Error: ""}, nil
+
+	// Generate and return token
+	token, err := s.jwt.GenerateToken(user)
+	if err != nil {
+		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		return &pb.RegisterResponse{
+			Status: http.StatusBadRequest,
+			Error:  "something went wrong",
+		}, nil
+	}
+
+	return &pb.RegisterResponse{
+		Status: http.StatusCreated,
+		Error:  "",
+		Token:  token,
+	}, nil
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
@@ -81,10 +95,19 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	var user models.TheMonkeysUser
 
 	// Check if the email exists
-	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
-		Scan(&user.Email, &user.Password)
+	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password, deactivated FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Email, &user.Password, &user.Deactivated)
 	if err != nil {
 		logrus.Errorf("cannot login as the email %s doesn't exist, error: %+v", req.Email, err)
+		return &pb.LoginResponse{
+			Status: http.StatusNotFound,
+			Error:  "the email isn't registered",
+		}, nil
+	}
+
+	// If user is deactivated then no login
+	if user.Deactivated == true {
+		logrus.Errorf("user %s cannot login as it's deactivated, error: %+v", req.Email, err)
 		return &pb.LoginResponse{
 			Status: http.StatusNotFound,
 			Error:  "the email isn't registered",
@@ -315,9 +338,9 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 	var user models.TheMonkeysUser
 	var timeOut string
 
-	if err := s.dbCli.PsqlClient.QueryRow(`SELECT email, email_verification_token, email_verification_timeout 
+	if err := s.dbCli.PsqlClient.QueryRow(`SELECT id, email, email_verification_token, email_verification_timeout 
 		FROM the_monkeys_user WHERE email=$1;`, req.GetEmail()).
-		Scan(&user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
+		Scan(&user.Id, &user.Email, &user.EmailVerificationToken, &timeOut); err != nil {
 		logrus.Errorf("cannot get the user details to verify email, error: %v", err)
 		return nil, err
 	}
@@ -333,12 +356,10 @@ func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.Em
 		return nil, err
 	}
 
+	emailBody := utils.EmailVerificationHTML(user.Email, hash)
 	logrus.Infof("Sending verification email to: %s", req.GetEmail())
-	if err := s.SendMail(user.Email, hash); err != nil {
-		logrus.Infof("cannot send email to %s, error: %v", req.Email, err)
-		return nil, err
-	}
-	logrus.Infof("email %v is verified", req.Email)
+	// TODO: Handle error of the go routine
+	go s.SendMail(user.Email, emailBody)
 
 	return &pb.EmailVerificationRes{
 		Status:  http.StatusOK,

@@ -45,7 +45,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
 
-	routes.GET("/verify-email", asc.VerifyEmail)
+	routes.POST("/verify-email", asc.VerifyEmail)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
@@ -154,6 +154,7 @@ func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
+// TODO: Rename it to Password Reset Email Verification
 func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/google/uuid"
 )
 
 func PublicIP() string {
@@ -20,4 +23,11 @@ func PublicIP() string {
 
 	fmt.Println("Public IP address:", string(ip))
 	return string(ip)
+}
+
+func GetUUID() string {
+	uuid := uuid.New()
+	id := uuid.ID()
+
+	return strconv.Itoa(int(id))
 }
