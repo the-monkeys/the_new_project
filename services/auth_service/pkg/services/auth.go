@@ -37,8 +37,8 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	var user models.TheMonkeysUser
 
 	// Check if the user exists with the same email id return conflict
-	err := s.dbCli.PsqlClient.QueryRow("SELECT email FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
-		Scan(&user.Email)
+	err := s.dbCli.PsqlClient.QueryRow("SELECT email, deactivated FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Email, &user.Deactivated)
 	if err == nil {
 		logrus.Errorf("cannot register the user, as the email %s is existing already", req.Email)
 		return &pb.RegisterResponse{
@@ -61,6 +61,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	user.Role = int32(pb.UserRole_USER_NORMAL)
 	user.EmailVerificationToken = encHash
 	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
+	user.Deactivated = false
 
 	logrus.Infof("registering the user with email %v", req.Email)
 	if err := s.dbCli.RegisterUser(user); err != nil {

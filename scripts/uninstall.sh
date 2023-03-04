@@ -51,8 +51,7 @@ THE_MONKEYS_SERVICES=(
     "article_and_post"
     "auth_service"
     "blogsandposts_service"
-    "the_monkey_pg"
-    "user_profile"
+    "user_service"
 )
 
 echo "[Installing THE_MONKEYS services...]"

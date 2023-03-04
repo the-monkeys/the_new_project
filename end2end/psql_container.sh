@@ -36,7 +36,7 @@ docker run --restart always -d --name $CONTAINER_NAME \
     -p 5432:5432 \
     $IMAGE_NAME
 
---restart always
+
 sudo docker run --restart always -d --name $OPENSEARCH_CONTAINER -p 9200:9200 -p 9600:9600 -e "discovery.type=single-node" $OPENSEARCH_IMAGE
 
 
