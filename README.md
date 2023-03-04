@@ -15,6 +15,7 @@ Thank you for visiting our platform. We hope you find it informative and educati
 <br>
 
 # The current architecture diagram.
+
 ![the monkeys](static/the_monkeys.jpg)
 
 
