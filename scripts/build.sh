@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 source ${MONKEY_SCRIPTS}/common.sh
