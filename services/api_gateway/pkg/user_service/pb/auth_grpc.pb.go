@@ -26,6 +26,7 @@ type UserServiceClient interface {
 	SetMyProfile(ctx context.Context, in *SetMyProfileReq, opts ...grpc.CallOption) (*SetMyProfileRes, error)
 	UploadProfile(ctx context.Context, opts ...grpc.CallOption) (UserService_UploadProfileClient, error)
 	Download(ctx context.Context, in *GetProfilePicReq, opts ...grpc.CallOption) (UserService_DownloadClient, error)
+	DeleteMyProfile(ctx context.Context, in *DeleteMyAccountReq, opts ...grpc.CallOption) (*DeleteMyAccountRes, error)
 }
 
 type userServiceClient struct {
@@ -120,6 +121,15 @@ func (x *userServiceDownloadClient) Recv() (*GetProfilePicRes, error) {
 	return m, nil
 }
 
+func (c *userServiceClient) DeleteMyProfile(ctx context.Context, in *DeleteMyAccountReq, opts ...grpc.CallOption) (*DeleteMyAccountRes, error) {
+	out := new(DeleteMyAccountRes)
+	err := c.cc.Invoke(ctx, "/auth.UserService/DeleteMyProfile", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -128,6 +138,7 @@ type UserServiceServer interface {
 	SetMyProfile(context.Context, *SetMyProfileReq) (*SetMyProfileRes, error)
 	UploadProfile(UserService_UploadProfileServer) error
 	Download(*GetProfilePicReq, UserService_DownloadServer) error
+	DeleteMyProfile(context.Context, *DeleteMyAccountReq) (*DeleteMyAccountRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -146,6 +157,9 @@ func (UnimplementedUserServiceServer) UploadProfile(UserService_UploadProfileSer
 }
 func (UnimplementedUserServiceServer) Download(*GetProfilePicReq, UserService_DownloadServer) error {
 	return status.Errorf(codes.Unimplemented, "method Download not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteMyProfile(context.Context, *DeleteMyAccountReq) (*DeleteMyAccountRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMyProfile not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -243,6 +257,24 @@ func (x *userServiceDownloadServer) Send(m *GetProfilePicRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _UserService_DeleteMyProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMyAccountReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteMyProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.UserService/DeleteMyProfile",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteMyProfile(ctx, req.(*DeleteMyAccountReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -257,6 +289,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetMyProfile",
 			Handler:    _UserService_SetMyProfile_Handler,
+		},
+		{
+			MethodName: "DeleteMyProfile",
+			Handler:    _UserService_DeleteMyProfile_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

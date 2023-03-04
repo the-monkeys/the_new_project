@@ -118,3 +118,18 @@ func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_
 
 	return nil
 }
+
+func (us *UserService) DeleteMyProfile(ctx context.Context, req *pb.DeleteMyAccountReq) (*pb.DeleteMyAccountRes, error) {
+	us.log.Infof("The used %v is requested to delete their account", req.GetId())
+
+	err := us.db.DeactivateMyAccount(req.GetId())
+	if err != nil {
+		us.log.Errorf("cannot get the profile pic, error: %v", err)
+		return nil, utils.Errors(err)
+	}
+
+	return &pb.DeleteMyAccountRes{
+		Status: http.StatusOK,
+		Id:     req.Id,
+	}, nil
+}
