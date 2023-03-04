@@ -75,7 +75,8 @@ func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq
 }
 
 func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) error {
-	var imageData []byte
+	var byteSlice []byte
+	var chunkId int64
 	for {
 		chunk, err := stream.Recv()
 		if err == io.EOF {
@@ -85,18 +86,18 @@ func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) 
 			return err
 		}
 
-		imageData = append(imageData, chunk.Data...)
+		byteSlice = append(byteSlice, chunk.Data...)
+		chunkId = chunk.Id
 	}
-
-	err := us.db.UploadProfilePic(imageData, 2)
+	us.log.Infof("updating profile pic for user: %v", chunkId)
+	err := us.db.UploadProfilePic(byteSlice, chunkId)
 	if err != nil {
 		return err
 	}
 
 	return stream.SendAndClose(&pb.UploadProfilePicRes{
 		Status: http.StatusOK,
-		// TODO: SET ID
-		Id: 2,
+		Id:     chunkId,
 	})
 }
 func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_DownloadServer) error {
