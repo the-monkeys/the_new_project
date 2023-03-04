@@ -172,11 +172,11 @@ func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 
 	}
 	if err != nil {
+		errors.RestError(ctx, err, "user_service")
 		logrus.Errorf("cannot get the stream data, error: %+v", err)
+		return
 	}
 
-	ioutil.WriteFile("profile.png", resp.Data, 0777)
-	// ctx.File(http.StatusAccepted, resp.Data)
 	ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
 	ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
 }
