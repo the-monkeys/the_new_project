@@ -72,10 +72,10 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 
 	// check for google login
 	var loginMethod pb.RegisterRequest_LoginMethod
-	if body.LoginMethod == "ggogle" {
+	if body.LoginMethod == "google_acc" {
 		loginMethod = pb.RegisterRequest_GOOGLE_ACC
 	} else if body.LoginMethod == "the_monkeys" {
-		loginMethod = pb.RegisterRequest_GOOGLE_ACC
+		loginMethod = pb.RegisterRequest_The_MONKEYS
 	}
 
 	res, err := asc.Client.Register(context.Background(), &pb.RegisterRequest{

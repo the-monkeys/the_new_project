@@ -62,7 +62,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	user.EmailVerificationToken = encHash
 	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
 	user.Deactivated = false
-	user.LoginMethod = req.LoginMethod
+	user.LoginMethod = pb.RegisterRequest_LoginMethod_name[pb.RegisterRequest_LoginMethod_value[req.LoginMethod.String()]]
 
 	logrus.Infof("registering the user with email %v", req.Email)
 	if err := s.dbCli.RegisterUser(user); err != nil {
