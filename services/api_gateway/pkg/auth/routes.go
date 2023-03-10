@@ -70,11 +70,20 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 	body.LastName = strings.TrimSpace(body.LastName)
 	body.Email = strings.TrimSpace(body.Email)
 
+	// check for google login
+	var loginMethod pb.RegisterRequest_LoginMethod
+	if body.LoginMethod == "google_acc" {
+		loginMethod = pb.RegisterRequest_GOOGLE_ACC
+	} else if body.LoginMethod == "the_monkeys" {
+		loginMethod = pb.RegisterRequest_The_MONKEYS
+	}
+
 	res, err := asc.Client.Register(context.Background(), &pb.RegisterRequest{
-		FirstName: body.FirstName,
-		LastName:  body.LastName,
-		Email:     body.Email,
-		Password:  body.Password,
+		FirstName:   body.FirstName,
+		LastName:    body.LastName,
+		Email:       body.Email,
+		Password:    body.Password,
+		LoginMethod: loginMethod,
 	})
 
 	if err != nil {

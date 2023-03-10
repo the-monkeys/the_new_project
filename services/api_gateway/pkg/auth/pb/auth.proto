@@ -9,6 +9,22 @@ message RegisterRequest {
   string lastName = 2;
   string email = 3;
   string password = 4;
+  LoginMethod loginMethod = 5;
+  UserRole role = 6;
+
+  enum LoginMethod {
+    The_MONKEYS = 0;
+    GOOGLE_ACC = 1;
+    ANDROID = 2;
+    IPHONE = 3;
+  } 
+}
+
+enum UserRole {
+  USER_ADMIN = 0;
+  USER_NORMAL = 1;
+  USER_SUPPORT = 2;
+  USER_SECURITY = 3;
 }
 
 message RegisterResponse {
