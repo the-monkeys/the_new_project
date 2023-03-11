@@ -8,6 +8,8 @@ proto:
 	protoc services/user_service/service/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc services/blogsandposts_service/blog_service/pb/*.proto --go_out=. --go-grpc_out=.
 
+proto-gen-interservices:
+	protoc apis/interservice/**/*.proto --go_out=. --go-grpc_out=.
 
 
 sql-gen:
