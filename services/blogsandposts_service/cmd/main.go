@@ -34,11 +34,12 @@ func main() {
 	}
 
 	blogService := service.NewBlogService(*osClient, logger)
+	interservice := service.NewInterservice(*osClient, logger)
 
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterBlogsAndPostServiceServer(grpcServer, blogService)
-	isv.RegisterBlogServiceServer(grpcServer, nil)
+	isv.RegisterBlogServiceServer(grpcServer, interservice)
 
 	logrus.Info("art and post service is running on address: ", cfg.BlogAndPostSvcURL)
 	if err := grpcServer.Serve(lis); err != nil {

@@ -30,9 +30,23 @@ func main() {
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterUserServiceServer(grpcServer, userService)
+	if err = BlogServiceConn(cfg.BlogAndPostSvcURL); err != nil {
+		logrus.Fatalln("could not connect to the blog service: %v", err)
+	}
 
 	log.Infof("the user service started at: %v", cfg.UserSrvPort)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
 	}
+}
+
+func BlogServiceConn(addr string) error {
+	logrus.Infof("gRPC dialing to the blog server: %v", addr)
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	return nil
 }
