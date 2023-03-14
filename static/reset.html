@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500&family=Oswald&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500&family=Hind+Madurai:wght@300&family=Oswald&display=swap" rel="stylesheet">
+    <style>
+        
+        *{
+            margin: 0px;
+            padding: 0px;
+            box-sizing: border-box;
+        }
+        body{
+            background: #d5d3d3;
+            
+            font-family: 'Hind Madurai', sans-serif;
+
+        }
+        .container{
+            display: flex;
+            height: 98vh;
+            width: 100%;
+            gap: 50px;
+            align-items: center;
+            flex-direction: column;
+        }
+        .container .container-wrap{
+           background: #fff;
+           padding: 10px 15px;
+        }
+        .c_name{
+           text-align: center;
+           padding-top: 10px;
+        }
+        .button{
+            background-color: #fff;
+            text-align: center;
+        }
+        .button_design{
+            background-color: #4CAF50;
+            border: none;
+            color:white;
+            padding:15px 32px;
+            display:inline-block;
+            font-size: 16px;
+            
+        }
+        .inner_box{
+            overflow: hidden;
+            width: 40%;
+            padding: 30px;
+            justify-content: center;
+            align-items: center;
+            background-color:#fff;
+            text-align: justify;
+        }
+        .heading{
+            font-family: 'Hanken Grotesk', sans-serif;
+            font-family: 'Oswald', sans-serif;
+            padding-bottom: 15px;
+        }
+        .outer_box{
+            height: 50px;
+            width:100%;
+            text-align: center;
+            padding-top: 20px;
+        }
+        @media only screen and (max-width:1000px){  
+            .inner_box{
+                width: 80%;
+            }
+        }
+        @media only screen and (max-width:600px){  
+            .inner_box{
+                width: 100%;
+            }
+        }
+        
+        
+        
+        
+    </style>
+</head>
+<body>
+     
+    
+    <div class="container">
+        <div class="outer_box">
+            <p> 
+            The Monkeys   
+        </p>
+    </div>
+        <div class="inner_box">
+            <h1 class="heading"> Hi ` + firstName + ` ` + LastName + ` ,</h1>
+              <p class="text"> You recently requested to reset the password for your The Monkeys account. Use the button below to reset it. This password reset link is valid for the next 5 minutes.</p>
+              <br>
+              <br>
+              <div class="button">
+              <button class="button_design">Reset your password</button><br></div>
+              <br>
+              <br>
+              If you did not request a password reset. Please ignore this email or contact.support if you have questions.<br>
+              <br>
+              Thanks<br>
+              The Monkeys team
+        </div>
+    </div>
+    
+</body>
+</html>
